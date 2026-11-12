@@ -1,29 +1,26 @@
 @props([
     'type' => 'button',
     'href' => null,
-    'size' => 'md', // 'sm' | 'md' | 'lg'
+    'size' => 'md',
     'icon' => null,
     'iconRight' => null,
+    'iconOnly' => false,
+    'disabled' => false,
+    'loading' => false,
+    'fullWidth' => false,
 ])
 
-@php
-    $sizeClass = match($size) {
-        'sm' => 'btn-sm',
-        'lg' => 'btn-lg',
-        default => '',
-    };
-    $tag = $href ? 'a' : 'button';
-@endphp
-
-<{{ $tag }}
-    {{ $href ? "href={$href}" : "type={$type}" }}
-    {{ $attributes->merge(['class' => "btn-primary {$sizeClass}"]) }}>
-    @if ($icon)
-        {!! $icon !!}
-    @endif
+<x-button
+    variant="primary"
+    :type="$type"
+    :href="$href"
+    :size="$size"
+    :icon="$icon"
+    :iconRight="$iconRight"
+    :iconOnly="$iconOnly"
+    :disabled="$disabled"
+    :loading="$loading"
+    :fullWidth="$fullWidth"
+    {{ $attributes }}>
     {{ $slot }}
-    @if ($iconRight)
-        {!! $iconRight !!}
-    @endif
-</{{ $tag }}>
-
+</x-button>

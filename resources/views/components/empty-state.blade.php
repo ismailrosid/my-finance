@@ -18,14 +18,6 @@
     </div>
     <h3 class="empty-state-title">{{ $title }}</h3>
     <p class="empty-state-desc">{{ $description }}</p>
-    @if ($actionLabel && $actionHref)
-        <x-button-primary :href="$actionHref">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-            {{ $actionLabel }}
-        </x-button-primary>
-    @endif
     {{ $slot }}
 </div>
 

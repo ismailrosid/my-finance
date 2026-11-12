@@ -3,7 +3,7 @@
     'striped' => false,
 ])
 
-<div {{ $attributes->merge(['class' => 'overflow-x-auto rounded-xl border border-gray-200']) }}>
+<div {{ $attributes->merge(['class' => 'overflow-x-auto rounded-md border border-gray-200 shadow-default bg-white']) }}>
     <table class="data-table">
         @if (count($headers))
             <thead>

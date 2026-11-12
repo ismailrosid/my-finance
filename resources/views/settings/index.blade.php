@@ -1,134 +1,256 @@
 <x-layouts.app title="Settings">
+    @php
+        $catTypeOptions = [
+            'expense' => 'Expense (Pengeluaran)',
+            'income'  => 'Income (Pemasukan)',
+        ];
+    @endphp
 
-    <x-page-header
-        title="Settings"
-        subtitle="Manage your account preferences and application settings."
-        :breadcrumbs="[
-            ['label' => 'Dashboard', 'url' => route('dashboard')],
-            ['label' => 'Settings', 'url' => route('settings.index')],
-        ]">
-    </x-page-header>
+    <div x-data="{ activeTab: @js($errors->any() ? 'categories' : 'profile'), openCatModal: @js($errors->any()) }">
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6" x-data="{ section: 'profile' }">
+        <x-page-header
+            title="Settings"
+            subtitle="Manage your profile, preferences, and custom financial categories."
+            :breadcrumbs="[
+                ['label' => 'Dashboard', 'url' => route('dashboard')],
+                ['label' => 'Settings', 'url' => route('settings.index')],
+            ]">
+        </x-page-header>
 
-        {{-- Settings Sidebar --}}
-        <div class="lg:col-span-1">
-            <div class="card p-2">
-                <nav class="space-y-0.5">
-                    @foreach ([
-                        'profile'       => ['label' => 'Profile', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
-                        'currency'      => ['label' => 'Currency & Format', 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                        'categories'    => ['label' => 'Categories', 'icon' => 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'],
-                        'notifications' => ['label' => 'Notifications', 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'],
-                        'security'      => ['label' => 'Security', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                    ] as $key => $item)
-                        <button @click="section = '{{ $key }}'"
-                                class="sidebar-link w-full text-left"
-                                :class="section === '{{ $key }}' ? 'active' : ''">
-                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
-                            </svg>
-                            {{ $item['label'] }}
-                        </button>
-                    @endforeach
-                </nav>
+        {{-- Tabs --}}
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="flex space-x-6 text-sm font-medium">
+                <button
+                    @click="activeTab = 'profile'"
+                    :class="activeTab === 'profile' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="py-3 px-1 border-b-2 transition cursor-pointer">
+                    Profile Settings
+                </button>
+                <button
+                    @click="activeTab = 'categories'"
+                    :class="activeTab === 'categories' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="py-3 px-1 border-b-2 transition cursor-pointer">
+                    Categories
+                </button>
+                <button
+                    @click="activeTab = 'security'"
+                    :class="activeTab === 'security' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="py-3 px-1 border-b-2 transition cursor-pointer">
+                    Security & Password
+                </button>
+            </nav>
+        </div>
+
+        {{-- Tab 1: Profile --}}
+        <div x-show="activeTab === 'profile'" class="max-w-2xl">
+            <div class="card p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Personal Information</h3>
+                <form action="{{ route('settings.update-profile') }}" method="POST" class="space-y-4" novalidate>
+                    @csrf
+                    @method('PUT')
+
+                    <x-form-input
+                        name="name"
+                        label="Full Name"
+                        :value="old('name', $user?->name)"
+                        required />
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
+                        <input
+                            type="email"
+                            value="{{ $user?->email }}"
+                            disabled
+                            class="w-full h-10.5 px-3.5 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed shadow-sm">
+                        <p class="mt-1 text-[11px] text-gray-400">Email address cannot be changed.</p>
+                    </div>
+
+                    <x-form-input
+                        name="phone_number"
+                        label="Phone Number"
+                        :value="old('phone_number', $user?->phone_number)"
+                        placeholder="e.g. 08123456789" />
+
+                    <div class="pt-4 border-t border-gray-100 flex justify-end">
+                        <x-button type="submit" variant="primary" size="md">
+                            Save Changes
+                        </x-button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        {{-- Settings Content --}}
-        <div class="lg:col-span-3 card">
-            {{-- Profile --}}
-            <div x-show="section === 'profile'">
-                <div class="card-header">
-                    <h2 class="text-sm font-semibold text-gray-900">Profile Settings</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">Update your personal information</p>
+        {{-- Tab 2: Categories --}}
+        <div x-show="activeTab === 'categories'" style="display: none;" class="space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">Financial Categories</h3>
+                    <p class="text-xs text-gray-400">Default system categories and your custom categories</p>
                 </div>
-                <div class="card-body space-y-5">
-                    <x-alert type="info" :dismissible="false">
-                        Profile management will be available in the next update.
-                    </x-alert>
+                <x-button type="button" variant="primary" size="sm" @click="openCatModal = true">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Category
+                </x-button>
+            </div>
+
+            <div class="card overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold">
+                        <tr>
+                            <th class="px-5 py-3">Category Name</th>
+                            <th class="px-5 py-3">Type</th>
+                            <th class="px-5 py-3">Scope</th>
+                            <th class="px-5 py-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($categories as $cat)
+                            <tr class="hover:bg-gray-50/50 transition">
+                                <td class="px-5 py-3.5 font-medium text-gray-900 flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color: {{ $cat->color }}"></span>
+                                    {{ $cat->category_name }}
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold {{ $cat->category_type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">
+                                        {{ ucfirst($cat->category_type) }}
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3.5 text-gray-500">
+                                    @if($cat->is_system)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-gray-100 text-gray-600 font-medium">System</span>
+                                    @else
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 font-medium">Custom</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 text-right">
+                                    @if(!$cat->is_system)
+                                        <form action="{{ route('settings.destroy-category', $cat->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button
+                                                type="button"
+                                                @click="$confirm({
+                                                    title: 'Delete this category?',
+                                                    description: 'Are you sure you want to delete this custom category? Existing transactions using this category will remain unchanged.',
+                                                    confirmText: 'Delete Category',
+                                                    cancelText: 'Cancel',
+                                                    variant: 'danger',
+                                                    form: $el.closest('form')
+                                                })"
+                                                class="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-gray-300 text-xs">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Modal: Create Custom Category --}}
+            <x-modal
+                show="openCatModal"
+                title="Create Custom Category"
+                subtitle="Add an income or expense category tailored to your needs"
+                maxWidth="md">
+
+                <x-slot:icon>
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/>
+                    </svg>
+                </x-slot:icon>
+
+                <form action="{{ route('settings.store-category') }}" method="POST" class="space-y-4" novalidate>
+                    @csrf
+
+                    <x-form-input
+                        name="category_name"
+                        label="Category Name"
+                        placeholder="e.g. Side Hustle, Crypto Staking, Pet Care"
+                        required />
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <x-form-input label="Full Name" name="name" placeholder="Your full name"/>
-                        <x-form-input label="Email Address" name="email" type="email" placeholder="your@email.com"/>
-                    </div>
-                    <div class="pt-2">
-                        <x-button-primary type="submit">Save Changes</x-button-primary>
-                    </div>
-                </div>
-            </div>
+                        <x-form-select
+                            name="category_type"
+                            label="Type"
+                            :options="$catTypeOptions"
+                            value="expense"
+                            placeholder="Select category type..."
+                            searchPlaceholder="Search type..."
+                            required />
 
-            {{-- Currency --}}
-            <div x-show="section === 'currency'" x-cloak>
-                <div class="card-header">
-                    <h2 class="text-sm font-semibold text-gray-900">Currency & Format</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">Configure display format for amounts</p>
-                </div>
-                <div class="card-body space-y-5">
-                    <x-form-select
-                        label="Currency"
-                        name="currency"
-                        :options="['IDR' => 'Indonesian Rupiah (Rp)', 'USD' => 'US Dollar ($)', 'EUR' => 'Euro (€)', 'SGD' => 'Singapore Dollar (S$)']"/>
-                    <x-form-select
-                        label="Number Format"
-                        name="number_format"
-                        :options="['1.000,00' => '1.000,00 (ID)', '1,000.00' => '1,000.00 (US)']"/>
-                    <x-form-select
-                        label="Date Format"
-                        name="date_format"
-                        :options="['d/m/Y' => 'DD/MM/YYYY', 'm/d/Y' => 'MM/DD/YYYY', 'Y-m-d' => 'YYYY-MM-DD']"/>
-                    <div class="pt-2">
-                        <x-button-primary type="submit">Save Changes</x-button-primary>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Color Badge</label>
+                            <div class="flex items-center gap-2">
+                                <input
+                                    type="color"
+                                    name="color"
+                                    value="#10B981"
+                                    class="h-10.5 w-14 p-1 rounded-xl border border-gray-200 cursor-pointer shadow-sm">
+                                <span class="text-xs text-gray-400">Tag accent</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {{-- Categories --}}
-            <div x-show="section === 'categories'" x-cloak>
-                <div class="card-header">
-                    <h2 class="text-sm font-semibold text-gray-900">Transaction Categories</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">Manage your income and expense categories</p>
-                </div>
-                <div class="card-body">
-                    <x-empty-state
-                        title="No categories yet"
-                        description="Create categories to organize your transactions."
-                        action-label="Add Category"
-                        action-href="#">
-                    </x-empty-state>
-                </div>
-            </div>
-
-            {{-- Notifications --}}
-            <div x-show="section === 'notifications'" x-cloak>
-                <div class="card-header">
-                    <h2 class="text-sm font-semibold text-gray-900">Notification Preferences</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">Control when and how you receive alerts</p>
-                </div>
-                <div class="card-body">
-                    <x-alert type="info" :dismissible="false">
-                        Notification settings will be available in the next update.
-                    </x-alert>
-                </div>
-            </div>
-
-            {{-- Security --}}
-            <div x-show="section === 'security'" x-cloak>
-                <div class="card-header">
-                    <h2 class="text-sm font-semibold text-gray-900">Security</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">Manage your password and account security</p>
-                </div>
-                <div class="card-body space-y-5">
-                    <x-form-input label="Current Password" name="current_password" type="password" placeholder="••••••••"/>
-                    <x-form-input label="New Password" name="new_password" type="password" placeholder="••••••••"/>
-                    <x-form-input label="Confirm New Password" name="new_password_confirmation" type="password" placeholder="••••••••"/>
-                    <div class="pt-2">
-                        <x-button-primary type="submit">Update Password</x-button-primary>
+                    <div class="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                        <x-button type="button" variant="secondary" size="md" @click="openCatModal = false">
+                            Cancel
+                        </x-button>
+                        <x-button type="submit" variant="primary" size="md">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Save Category
+                        </x-button>
                     </div>
-                </div>
+                </form>
+            </x-modal>
+        </div>
+
+        {{-- Tab 3: Security --}}
+        <div x-show="activeTab === 'security'" style="display: none;" class="max-w-2xl">
+            <div class="card p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Change Password</h3>
+                <form action="{{ route('settings.update-password') }}" method="POST" class="space-y-4" novalidate>
+                    @csrf
+                    @method('PUT')
+
+                    <x-form-input
+                        type="password"
+                        name="current_password"
+                        label="Current Password"
+                        placeholder="Enter current password"
+                        required />
+
+                    <x-form-input
+                        type="password"
+                        name="password"
+                        label="New Password"
+                        placeholder="Enter new strong password"
+                        required />
+
+                    <x-form-input
+                        type="password"
+                        name="password_confirmation"
+                        label="Confirm New Password"
+                        placeholder="Repeat new password"
+                        required />
+
+                    <div class="pt-4 border-t border-gray-100 flex justify-end">
+                        <x-button type="submit" variant="primary" size="md">
+                            Update Password
+                        </x-button>
+                    </div>
+                </form>
             </div>
         </div>
 
     </div>
-
 </x-layouts.app>
-

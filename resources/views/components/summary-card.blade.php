@@ -24,7 +24,7 @@
             <p class="text-sm font-medium text-gray-500">{{ $label }}</p>
         </div>
         @if ($icon)
-            <div class="w-10 h-10 rounded-xl {{ $iconBg }} flex items-center justify-center shrink-0">
+            <div class="w-11 h-11 rounded-full {{ $iconBg }} flex items-center justify-center shrink-0">
                 <span class="{{ $iconColor }}">
                     {!! $icon !!}
                 </span>

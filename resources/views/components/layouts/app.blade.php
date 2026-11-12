@@ -15,32 +15,42 @@
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700&display=swap" rel="stylesheet" />
 
     <!-- Styles & Scripts -->
-    <link rel="stylesheet" href="{{ asset('css/myfinance.css') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @if (file_exists(public_path('build/manifest.json')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @else
+        <link rel="stylesheet" href="{{ asset('css/myfinance.css') }}">
+        <script src="https://cdn.tailwindcss.com"></script>
+    @endif
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b',
-                            950: '#022c22',
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            stroke: '#E2E8F0',
+                            strokedark: '#2E3A47',
+                            boxdark: '#24303F',
+                            body: '#64748B',
+                            primary: {
+                                50: '#ecfdf5',
+                                100: '#d1fae5',
+                                200: '#a7f3d0',
+                                300: '#6ee7b7',
+                                400: '#34d399',
+                                500: '#10b981',
+                                600: '#059669',
+                                700: '#047857',
+                                800: '#065f46',
+                                900: '#064e3b',
+                                950: '#022c22',
+                            }
+                        },
+                        fontFamily: {
+                            sans: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                         }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                     }
                 }
             }
@@ -70,32 +80,6 @@
             <!-- Page Content -->
             <main class="flex-1 overflow-y-auto">
                 <div class="px-4 sm:px-6 py-6 max-w-screen-xl mx-auto">
-
-                    {{-- Flash Messages --}}
-                    @if (session('success'))
-                        <div class="alert-success mb-5" x-data="{ show: true }" x-show="show" x-transition>
-                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>{{ session('success') }}</span>
-                            <button @click="show = false" class="ml-auto -mr-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                            </button>
-                        </div>
-                    @endif
-
-                    @if (session('error'))
-                        <div class="alert-error mb-5" x-data="{ show: true }" x-show="show" x-transition>
-                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>{{ session('error') }}</span>
-                            <button @click="show = false" class="ml-auto -mr-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                            </button>
-                        </div>
-                    @endif
-
                     {{ $slot }}
                 </div>
             </main>
@@ -114,6 +98,10 @@
          class="fixed inset-0 bg-gray-900/50 backdrop-blur-xs z-30 lg:hidden"
          x-cloak>
     </div>
+
+    <!-- Global UI Components: Confirmation Dialog & Toast Container -->
+    <x-ui.confirmation-dialog />
+    <x-ui.toast-container />
 
     <script>
         function layout() {

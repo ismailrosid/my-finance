@@ -1,67 +1,229 @@
 <x-layouts.app title="Budgets">
+    @php
+        $catOptions = [];
+        foreach ($categories as $cat) {
+            $catOptions[$cat->id] = [
+                'label' => $cat->category_name,
+                'badge' => 'Expense',
+            ];
+        }
 
-    <x-page-header
-        title="Budgets"
-        subtitle="Set monthly spending limits and track your budget progress."
-        :breadcrumbs="[
-            ['label' => 'Dashboard', 'url' => route('dashboard')],
-            ['label' => 'Budgets', 'url' => route('budgets.index')],
-        ]">
-        <x-slot:actions>
-            <div class="flex items-center gap-2">
-                {{-- Period selector --}}
-                <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                    <button class="px-3 py-1 text-xs font-medium rounded-md bg-white shadow-xs text-gray-900">
-                        {{ now()->format('M Y') }}
-                    </button>
-                    <button class="p-1 text-gray-500 hover:text-gray-700">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                    </button>
-                    <button class="p-1 text-gray-500 hover:text-gray-700">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </button>
-                </div>
-                <x-button-primary size="sm">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        $monthOptions = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthOptions[$m] = DateTime::createFromFormat('!m', $m)->format('F');
+        }
+
+        $yearOptions = [];
+        for ($y = now()->year - 1; $y <= now()->year + 2; $y++) {
+            $yearOptions[$y] = (string) $y;
+        }
+    @endphp
+
+    <div x-data="{ openModal: @js($errors->any()) }">
+
+        <x-page-header
+            title="Budgets"
+            subtitle="Plan and monitor your monthly spending limits."
+            :breadcrumbs="[
+                ['label' => 'Dashboard', 'url' => route('dashboard')],
+                ['label' => 'Budgets', 'url' => route('budgets.index')],
+            ]">
+            <x-slot:actions>
+                <x-button variant="primary" size="sm" @click="openModal = true">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Add Budget
-                </x-button-primary>
-            </div>
-        </x-slot:actions>
-    </x-page-header>
+                    Set Budget
+                </x-button>
+            </x-slot:actions>
+        </x-page-header>
 
-    {{-- Overall Progress --}}
-    <div class="card mb-6 p-6">
-        <div class="flex items-center justify-between mb-3">
+        {{-- Month Selector Bar --}}
+        <div class="card p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-                <p class="text-sm font-medium text-gray-500">Total Budget Used</p>
-                <p class="text-2xl font-bold text-gray-900 mt-1">Rp — <span class="text-gray-400 text-base font-normal">/ Rp —</span></p>
+                <span class="text-xs text-gray-400">Budget Period</span>
+                <h3 class="text-base font-bold text-gray-900">{{ DateTime::createFromFormat('!m', $month)->format('F') }} {{ $year }}</h3>
             </div>
-            <x-status-badge type="gray">0% used</x-status-badge>
+            <form method="GET" action="{{ route('budgets.index') }}" class="flex items-center gap-2">
+                <x-form-select
+                    name="month"
+                    :options="$monthOptions"
+                    :value="$month"
+                    size="sm"
+                    autoSubmit />
+                <x-form-select
+                    name="year"
+                    :options="$yearOptions"
+                    :value="$year"
+                    size="sm"
+                    align="right"
+                    autoSubmit />
+            </form>
         </div>
-        <div class="w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+
+        {{-- Summary Cards --}}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <x-summary-card
+                label="Total Budgeted"
+                :value="number_format($totalBudget ?? 0, 0, ',', '.')"
+                prefix="Rp"
+                iconBg="bg-blue-100"
+                iconColor="text-blue-600"/>
+
+            <x-summary-card
+                label="Total Spent"
+                :value="number_format($totalSpent ?? 0, 0, ',', '.')"
+                prefix="Rp"
+                iconBg="bg-red-100"
+                iconColor="text-red-600"/>
+
+            <x-summary-card
+                label="Remaining Budget"
+                :value="number_format($totalRemaining ?? 0, 0, ',', '.')"
+                prefix="Rp"
+                iconBg="bg-emerald-100"
+                iconColor="text-emerald-600"/>
         </div>
-        <p class="text-xs text-gray-400 mt-2">{{ now()->format('F Y') }} budget period</p>
+
+        {{-- Budgets List --}}
+        @if(isset($budgets) && $budgets->isNotEmpty())
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+                @foreach($budgets as $b)
+                    <div class="card p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded" style="background-color: {{ $b->category?->color }}20; color: {{ $b->category?->color }}">
+                                    {{ $b->category?->category_name }}
+                                </span>
+                                <h3 class="text-base font-bold text-gray-900 mt-1">Rp {{ number_format($b->amount_limit, 0, ',', '.') }}</h3>
+                            </div>
+                            <div class="text-right">
+                                @if($b->isOverBudget())
+                                    <span class="px-2 py-0.5 rounded text-[10px] bg-red-100 text-red-700 font-bold">Over Budget</span>
+                                @elseif($b->isAlertThresholdReached())
+                                    <span class="px-2 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 font-semibold">Near Limit</span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-700 font-semibold">On Track</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Progress Bar --}}
+                        <div class="space-y-1 mb-3">
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <span>Spent: Rp {{ number_format($b->spent_amount, 0, ',', '.') }}</span>
+                                <span class="font-semibold">{{ $b->usage_percentage }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div class="h-2 rounded-full {{ $b->isOverBudget() ? 'bg-red-500' : ($b->isAlertThresholdReached() ? 'bg-amber-500' : 'bg-emerald-500') }}" style="width: {{ min(100, $b->usage_percentage) }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+                            <span class="text-gray-400">Remaining: <strong class="text-gray-700 font-semibold">Rp {{ number_format($b->remaining_amount, 0, ',', '.') }}</strong></span>
+                            <form action="{{ route('budgets.destroy', $b->id) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button
+                                    type="button"
+                                    @click="$confirm({
+                                        title: 'Delete this budget?',
+                                        description: 'Are you sure you want to delete this budget category for the current period?',
+                                        confirmText: 'Delete Budget',
+                                        cancelText: 'Cancel',
+                                        variant: 'danger',
+                                        form: $el.closest('form')
+                                    })"
+                                    class="text-gray-400 hover:text-red-600 transition cursor-pointer"
+                                    title="Delete">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <x-empty-state
+                title="No budgets set for this month"
+                description="Set monthly budgets to keep your expenses under control.">
+            </x-empty-state>
+        @endif
+
+        {{-- Modal: Add Monthly Budget --}}
+        <x-modal
+            show="openModal"
+            title="Set Monthly Budget"
+            subtitle="Define a spending limit and receive early warnings"
+            maxWidth="md">
+
+            <x-slot:icon>
+                <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </x-slot:icon>
+
+            <form action="{{ route('budgets.store') }}" method="POST" class="space-y-4" novalidate>
+                @csrf
+
+                <x-form-select
+                    name="category_id"
+                    label="Expense Category"
+                    :options="$catOptions"
+                    placeholder="Select category..."
+                    searchPlaceholder="Search category..."
+                    required />
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <x-form-select
+                        name="period_month"
+                        label="Month"
+                        :options="$monthOptions"
+                        :value="$month"
+                        required />
+
+                    <x-form-input
+                        type="number"
+                        name="period_year"
+                        label="Year"
+                        :value="$year"
+                        required />
+                </div>
+
+                <x-form-input
+                    type="number"
+                    step="0.01"
+                    name="amount_limit"
+                    label="Monthly Budget Limit"
+                    prefix="Rp"
+                    placeholder="0"
+                    required />
+
+                <x-form-input
+                    type="number"
+                    name="alert_threshold_percentage"
+                    label="Alert Threshold"
+                    suffix="%"
+                    value="80"
+                    min="1"
+                    max="100"
+                    hint="System alerts you when spending hits this threshold percentage." />
+
+                <div class="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                    <x-button type="button" variant="secondary" size="md" @click="openModal = false">
+                        Cancel
+                    </x-button>
+                    <x-button type="submit" variant="primary" size="md">
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Save Budget
+                    </x-button>
+                </div>
+            </form>
+        </x-modal>
+
     </div>
-
-    {{-- Budget list --}}
-    <x-empty-state
-        title="No budgets set"
-        description="Create spending categories and set monthly limits to control your finances."
-        action-label="Create Budget"
-        action-href="#">
-        <x-slot:icon>
-            <svg class="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-        </x-slot:icon>
-    </x-empty-state>
-
 </x-layouts.app>
-
