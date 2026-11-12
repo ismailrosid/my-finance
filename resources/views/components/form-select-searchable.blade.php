@@ -210,7 +210,7 @@
         class="w-full text-left bg-white border flex items-center justify-between transition-all duration-150 cursor-pointer shadow-sm
                focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600
                disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed
-               {{ $isSmall ? 'h-8.5 px-3 py-1.5 text-xs rounded-lg gap-2' : 'h-10.5 px-3.5 py-2 text-xs rounded-xl gap-2.5' }}
+               {{ $isSmall ? 'h-8.5 min-h-[34px] px-3 py-1.5 text-xs rounded-lg gap-2' : 'h-10.5 min-h-[42px] px-3.5 py-2 text-xs rounded-xl gap-2.5' }}
                {{ $hasError ? 'border-red-400 text-red-900 focus:border-red-500 focus:ring-red-500/10' : 'border-slate-200 text-gray-800 hover:border-slate-300' }}"
         :class="{
             'ring-4 ring-emerald-500/10 border-emerald-600': open,

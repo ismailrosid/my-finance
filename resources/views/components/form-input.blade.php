@@ -42,7 +42,7 @@
             {{ $required ? 'required data-required=true' : '' }}
             {{ $disabled ? 'disabled' : '' }}
             {{ $attributes->except(['class', 'value']) }}
-            class="w-full h-10.5 text-xs bg-white border rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-150 shadow-sm
+            class="w-full h-10.5 min-h-[42px] text-xs bg-white border rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-150 shadow-sm
                    focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600
                    disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed
                    {{ $prefix ? 'pl-9' : 'px-3.5' }}

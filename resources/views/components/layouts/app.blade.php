@@ -13,9 +13,19 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
-    <!-- Fonts -->
+    <!-- Fonts: Google Fonts (Primary) & Bunny Fonts (Fallback) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700&display=swap" rel="stylesheet" />
+
+    <!-- Global Poppins Font Enforcement -->
+    <style>
+        html, body, button, input, select, textarea, .form-input, .form-select, .form-label {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }
+    </style>
 
     <!-- Styles & Scripts -->
     @if (file_exists(public_path('build/manifest.json')))
@@ -29,6 +39,14 @@
             tailwind.config = {
                 theme: {
                     extend: {
+                        spacing: {
+                            '8.5': '2.125rem',
+                            '10.5': '2.625rem',
+                        },
+                        borderRadius: {
+                            'xl': '0.75rem',
+                            '2xl': '1rem',
+                        },
                         colors: {
                             stroke: '#E2E8F0',
                             strokedark: '#2E3A47',
@@ -50,6 +68,7 @@
                         },
                         fontFamily: {
                             sans: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                            poppins: ['Poppins', 'sans-serif'],
                         }
                     }
                 }

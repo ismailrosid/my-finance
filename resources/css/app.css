@@ -70,7 +70,6 @@
 
     body {
         @apply bg-[#F1F5F9] text-gray-900 antialiased font-sans;
-        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     }
 
     [x-cloak] {
@@ -188,13 +187,13 @@
 
     /* Form inputs */
     .form-input {
-        @apply w-full px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400
+        @apply w-full min-h-[42px] px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400
                focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 transition-all duration-150 shadow-sm
                hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed;
     }
 
     .form-select {
-        @apply w-full px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl bg-white text-gray-900
+        @apply w-full min-h-[42px] px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl bg-white text-gray-900
                focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 transition-all duration-150 shadow-sm
                hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed;
     }
