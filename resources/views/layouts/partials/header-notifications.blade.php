@@ -34,6 +34,21 @@
         </template>
     </button>
 
+    {{-- Mobile Backdrop --}}
+    <div
+        x-show="open"
+        @click="open = false"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-gray-900/25 backdrop-blur-[1px] z-40 sm:hidden"
+        style="display: none;"
+        x-cloak>
+    </div>
+
     {{-- Dropdown Panel --}}
     <div
         x-show="open"
@@ -43,22 +58,22 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
         x-transition:leave-end="opacity-0 scale-95 translate-y-1"
-        class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 z-50 overflow-hidden transform"
+        class="fixed inset-x-3.5 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/20 z-50 overflow-hidden transform"
         style="display: none;"
         x-cloak>
 
         {{-- Panel Header --}}
-        <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
-            <div class="flex items-center gap-2">
-                <h3 class="text-sm font-bold text-gray-900 tracking-tight">Notifications</h3>
+        <div class="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between gap-2 bg-white">
+            <div class="flex items-center gap-2 min-w-0">
+                <h3 class="text-sm font-bold text-gray-900 tracking-tight shrink-0">Notifications</h3>
                 <span
                     x-show="unreadCount > 0"
-                    class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-100"
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-100 shrink-0"
                     x-text="`${unreadCount} unread`">
                 </span>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 shrink-0">
                 <button
                     type="button"
                     x-show="unreadCount > 0"
@@ -72,6 +87,17 @@
                         </svg>
                     </template>
                     <span x-text="isMarkingAll ? 'Marking...' : 'Mark all read'"></span>
+                </button>
+
+                {{-- Close button on Mobile --}}
+                <button
+                    type="button"
+                    @click="open = false"
+                    aria-label="Close"
+                    class="sm:hidden p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
                 </button>
             </div>
         </div>

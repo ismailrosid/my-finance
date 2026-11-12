@@ -127,6 +127,18 @@
             return {
                 sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false',
                 mobileOpen: false,
+                isMobile: window.innerWidth < 1024,
+                get isExpanded() {
+                    return this.isMobile ? true : this.sidebarOpen;
+                },
+                init() {
+                    window.addEventListener('resize', () => {
+                        this.isMobile = window.innerWidth < 1024;
+                        if (!this.isMobile) {
+                            this.mobileOpen = false;
+                        }
+                    });
+                },
                 toggleSidebar() {
                     this.sidebarOpen = !this.sidebarOpen;
                     localStorage.setItem('sidebarOpen', this.sidebarOpen);

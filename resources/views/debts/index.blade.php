@@ -285,11 +285,11 @@
                     placeholder="Optional notes or repayment agreement details..." />
 
                 {{-- Actions --}}
-                <div class="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
-                    <x-button type="button" variant="secondary" size="md" @click="openModal = false">
+                <div class="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
+                    <x-button type="button" variant="secondary" size="md" class="w-full sm:w-auto" @click="openModal = false">
                         Cancel
                     </x-button>
-                    <x-button type="submit" variant="primary" size="md">
+                    <x-button type="submit" variant="primary" size="md" class="w-full sm:w-auto">
                         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
@@ -345,11 +345,11 @@
                     label="Payment Notes"
                     placeholder="e.g. Paid via BCA Mobile Transfer..." />
 
-                <div class="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
-                    <x-button type="button" variant="secondary" size="md" @click="payModal = false">
+                <div class="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
+                    <x-button type="button" variant="secondary" size="md" class="w-full sm:w-auto" @click="payModal = false">
                         Cancel
                     </x-button>
-                    <x-button type="submit" variant="primary" size="md">
+                    <x-button type="submit" variant="primary" size="md" class="w-full sm:w-auto">
                         Confirm Payment
                     </x-button>
                 </div>

@@ -117,7 +117,7 @@
 
             {{-- Optional Footer Slot --}}
             @if (isset($footer))
-                <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-end gap-2.5">
+                <div class="mt-6 pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
                     {{ $footer }}
                 </div>
             @endif

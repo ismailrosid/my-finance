@@ -83,7 +83,7 @@
         {{ $slot }}
 
         {{-- Action Buttons --}}
-        <div class="mt-6 grid grid-cols-2 gap-3">
+        <div class="mt-6 flex flex-col-reverse sm:grid sm:grid-cols-2 gap-2.5 sm:gap-3">
             <button
                 type="button"
                 @click="if (!loading) open = false"
