@@ -55,5 +55,11 @@ class AuditLog extends Model
             'user_agent' => request()->userAgent(),
         ]);
     }
+
+    // Accessor: Human-readable diff
+    public function getDiffAttribute(): array
+    {
+        return \App\Services\AuditReportService::parseDiff($this->old_values, $this->new_values, $this->action);
+    }
 }
 

@@ -81,12 +81,26 @@ class AuditReportBatchTest extends TestCase
 
     public function test_super_admin_can_view_audit_reports_screen(): void
     {
+        // Seed an audit log with before/after diff
+        AuditLog::create([
+            'user_id'    => $this->superAdmin->id,
+            'action'     => 'UPDATE',
+            'table_name' => 'accounts',
+            'record_id'  => 55,
+            'old_values' => ['account_name' => 'Old Bank', 'current_balance' => 1000000],
+            'new_values' => ['account_name' => 'New Bank Mandiri', 'current_balance' => 1500000],
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PHPUnit',
+        ]);
+
         $response = $this->actingAs($this->superAdmin)->get(route('audit-reports.index'));
 
         $response->assertStatus(200);
         $response->assertSee('Audit Reports');
         $response->assertSee('Generate Batch Report');
         $response->assertSee('Report Audit Transaksi Keuangan');
+        $response->assertSee('Field Yang Diedit');
+        $response->assertSee('Inspect');
     }
 
     public function test_regular_user_cannot_access_audit_reports(): void
@@ -96,16 +110,16 @@ class AuditReportBatchTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_super_admin_can_generate_batch_report(): void
+    public function test_super_admin_can_generate_batch_report_with_field_diffs(): void
     {
-        // Seed an audit log
+        // Seed an audit log with an UPDATE action
         AuditLog::create([
             'user_id'    => $this->superAdmin->id,
-            'action'     => 'CREATE',
+            'action'     => 'UPDATE',
             'table_name' => 'transactions',
             'record_id'  => 101,
-            'old_values' => null,
-            'new_values' => ['amount' => 500000, 'description' => 'Project milestone'],
+            'old_values' => ['amount' => 100000, 'description' => 'Original description'],
+            'new_values' => ['amount' => 250000, 'description' => 'Updated description'],
             'ip_address' => '127.0.0.1',
             'user_agent' => 'PHPUnit',
         ]);
@@ -127,8 +141,16 @@ class AuditReportBatchTest extends TestCase
         $this->assertTrue(Storage::disk('local')->exists($batch->file_path));
 
         $csvContent = Storage::disk('local')->get($batch->file_path);
-        $this->assertStringContainsString('Project milestone', $csvContent);
-        $this->assertStringContainsString('transactions', $csvContent);
+        $this->assertStringContainsString('Field Yang Diedit (Fields Modified)', $csvContent);
+        $this->assertStringContainsString('Sebelum (Before / Old Value)', $csvContent);
+        $this->assertStringContainsString('Sesudah (After / New Value)', $csvContent);
+        $this->assertStringContainsString('Perubahan (Before ➔ After)', $csvContent);
+
+        // Verify diff contents
+        $this->assertStringContainsString('amount, description', $csvContent);
+        $this->assertStringContainsString('amount: [100000] ➔ [250000]', $csvContent);
+        $this->assertStringContainsString('Original description', $csvContent);
+        $this->assertStringContainsString('Updated description', $csvContent);
 
         // Clean up file
         Storage::disk('local')->delete($batch->file_path);

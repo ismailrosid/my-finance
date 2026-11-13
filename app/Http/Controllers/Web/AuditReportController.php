@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\ReportBatch;
 use App\Models\User;
 use App\Services\AuditReportService;
@@ -22,7 +23,12 @@ class AuditReportController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('audit-reports.index', compact('reportTypes', 'users', 'batches'));
+        $recentLogs = AuditLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(15)
+            ->get();
+
+        return view('audit-reports.index', compact('reportTypes', 'users', 'batches', 'recentLogs'));
     }
 
     public function generate(Request $request, AuditReportService $service): RedirectResponse

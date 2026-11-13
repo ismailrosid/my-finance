@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Debt;
 use App\Models\Transaction;
+use App\Models\AuditLog;
 use App\Services\FinancialService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -133,7 +134,17 @@ class TransactionController extends Controller
             'category_id' => 'nullable|exists:categories,id',
         ]);
 
+        $oldValues = $transaction->toArray();
         $transaction->update($validated);
+
+        AuditLog::record(
+            $userId,
+            'UPDATE',
+            'transactions',
+            $transaction->id,
+            $oldValues,
+            $transaction->fresh()->toArray()
+        );
 
         return redirect()->route('transactions.index')->with('success', 'Transaction updated successfully.');
     }

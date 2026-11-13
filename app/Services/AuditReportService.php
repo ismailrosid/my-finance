@@ -125,10 +125,12 @@ class AuditReportService
                 'Actor ID',
                 'Actor Name',
                 'Actor Email',
+                'Field Yang Diedit (Fields Modified)',
+                'Sebelum (Before / Old Value)',
+                'Sesudah (After / New Value)',
+                'Perubahan (Before ➔ After)',
                 'IP Address',
                 'User Agent',
-                'Old Values (Snapshot)',
-                'New Values (Snapshot)',
             ];
             fputcsv($fileHandle, $headers);
 
@@ -136,6 +138,8 @@ class AuditReportService
             $query->chunk(500, function ($logs) use ($fileHandle, &$totalRecords) {
                 foreach ($logs as $log) {
                     $totalRecords++;
+                    $diff = self::parseDiff($log->old_values, $log->new_values, $log->action);
+
                     fputcsv($fileHandle, [
                         $log->id,
                         $log->created_at ? $log->created_at->format('Y-m-d H:i:s') : '—',
@@ -145,10 +149,12 @@ class AuditReportService
                         $log->user_id ?? '—',
                         $log->user?->name ?? 'System',
                         $log->user?->email ?? '—',
+                        $diff['fields_changed'],
+                        $diff['before_text'],
+                        $diff['after_text'],
+                        $diff['changes_summary'],
                         $log->ip_address ?? '—',
                         $log->user_agent ?? '—',
-                        $log->old_values ? json_encode($log->old_values, JSON_UNESCAPED_UNICODE) : '—',
-                        $log->new_values ? json_encode($log->new_values, JSON_UNESCAPED_UNICODE) : '—',
                     ]);
                 }
             });
@@ -173,5 +179,129 @@ class AuditReportService
             ]);
             throw $e;
         }
+    }
+
+    public static function parseDiff(?array $old, ?array $new, string $action): array
+    {
+        $ignoredFields = ['updated_at', 'created_at', 'remember_token', 'password'];
+
+        $cleanOld = is_array($old) ? array_diff_key($old, array_flip($ignoredFields)) : [];
+        $cleanNew = is_array($new) ? array_diff_key($new, array_flip($ignoredFields)) : [];
+
+        $fieldList = [];
+        $beforeList = [];
+        $afterList = [];
+        $changesList = [];
+        $items = [];
+
+        $upperAction = strtoupper($action);
+
+        if ($upperAction === 'UPDATE') {
+            $allKeys = array_unique(array_merge(array_keys($cleanOld), array_keys($cleanNew)));
+
+            foreach ($allKeys as $key) {
+                $oldVal = $cleanOld[$key] ?? null;
+                $newVal = $cleanNew[$key] ?? null;
+
+                if (serialize($oldVal) !== serialize($newVal)) {
+                    $oldFormatted = self::formatValue($oldVal);
+                    $newFormatted = self::formatValue($newVal);
+
+                    $fieldList[] = $key;
+                    $beforeList[] = "{$key}: {$oldFormatted}";
+                    $afterList[] = "{$key}: {$newFormatted}";
+                    $changesList[] = "{$key}: [{$oldFormatted}] ➔ [{$newFormatted}]";
+
+                    $items[] = [
+                        'field'  => $key,
+                        'before' => $oldFormatted,
+                        'after'  => $newFormatted,
+                    ];
+                }
+            }
+
+            if (empty($fieldList)) {
+                $fieldsChanged = '(No specific field changed)';
+                $beforeText = '—';
+                $afterText = '—';
+                $changesSummary = 'Record updated (values identical or timestamps only)';
+            } else {
+                $fieldsChanged = implode(', ', $fieldList);
+                $beforeText = implode(' | ', $beforeList);
+                $afterText = implode(' | ', $afterList);
+                $changesSummary = implode(' | ', $changesList);
+            }
+
+        } elseif ($upperAction === 'CREATE' || $upperAction === 'CREATE_ROLE') {
+            $fieldsChanged = 'All Fields (New Entry)';
+            $beforeText = '[None - New Record]';
+
+            foreach ($cleanNew as $key => $val) {
+                $valFormatted = self::formatValue($val);
+                $afterList[] = "{$key}: {$valFormatted}";
+                $items[] = [
+                    'field'  => $key,
+                    'before' => '[None]',
+                    'after'  => $valFormatted,
+                ];
+            }
+
+            $afterText = !empty($afterList) ? implode(' | ', $afterList) : 'Record created';
+            $changesSummary = 'New record created with ' . count($cleanNew) . ' initial field(s)';
+
+        } elseif ($upperAction === 'DELETE' || $upperAction === 'DELETE_ROLE') {
+            $fieldsChanged = 'All Fields (Deleted)';
+            $afterText = '[None - Record Removed]';
+
+            foreach ($cleanOld as $key => $val) {
+                $valFormatted = self::formatValue($val);
+                $beforeList[] = "{$key}: {$valFormatted}";
+                $items[] = [
+                    'field'  => $key,
+                    'before' => $valFormatted,
+                    'after'  => '[Deleted]',
+                ];
+            }
+
+            $beforeText = !empty($beforeList) ? implode(' | ', $beforeList) : 'Record deleted';
+            $changesSummary = 'Record permanently deleted (Original state preserved)';
+
+        } else {
+            $fieldsChanged = 'Security / ' . $action;
+            $beforeText = '—';
+            $afterText = !empty($cleanNew) ? self::formatArrayInline($cleanNew) : 'Status: Recorded';
+            $changesSummary = 'Event: ' . $action;
+        }
+
+        return [
+            'fields_changed'  => $fieldsChanged,
+            'before_text'     => $beforeText,
+            'after_text'      => $afterText,
+            'changes_summary' => $changesSummary,
+            'items'           => $items,
+        ];
+    }
+
+    public static function formatValue(mixed $val): string
+    {
+        if (is_null($val)) {
+            return 'null';
+        }
+        if (is_bool($val)) {
+            return $val ? 'true' : 'false';
+        }
+        if (is_array($val)) {
+            return json_encode($val, JSON_UNESCAPED_UNICODE);
+        }
+        return (string) $val;
+    }
+
+    public static function formatArrayInline(array $arr): string
+    {
+        $res = [];
+        foreach ($arr as $k => $v) {
+            $res[] = "{$k}: " . self::formatValue($v);
+        }
+        return implode(' | ', $res);
     }
 }

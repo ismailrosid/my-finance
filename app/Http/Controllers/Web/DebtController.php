@@ -139,7 +139,10 @@ class DebtController extends Controller
             'status'        => 'required|in:active,paid_off,defaulted,cancelled',
         ]);
 
+        $oldValues = $debt->toArray();
         $debt->update($validated);
+
+        AuditLog::record($userId, 'UPDATE', 'debts', $debt->id, $oldValues, $debt->fresh()->toArray());
 
         return redirect()->route('debts.index')->with('success', 'Debt updated successfully.');
     }

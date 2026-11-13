@@ -80,3 +80,4 @@ class ReportBatch extends Model
         return implode(' • ', $parts);
     }
 }
+

@@ -110,11 +110,15 @@ class SettingController extends Controller
             'is_active'     => 'nullable|boolean',
         ]);
 
+        $oldValues = $category->toArray();
+
         $category->update([
             'category_name' => $validated['category_name'],
             'color'         => $validated['color'] ?? $category->color,
             'is_active'     => $request->has('is_active'),
         ]);
+
+        AuditLog::record($userId, 'UPDATE', 'categories', $category->id, $oldValues, $category->fresh()->toArray());
 
         return redirect()->route('settings.index', ['tab' => 'categories'])->with('success', 'Category updated successfully.');
     }
@@ -124,7 +128,10 @@ class SettingController extends Controller
         $userId = $this->getUserId();
         $category = Category::where('user_id', $userId)->where('is_system', false)->findOrFail($id);
 
+        $oldValues = $category->toArray();
         $category->delete();
+
+        AuditLog::record($userId, 'DELETE', 'categories', $id, $oldValues, null);
 
         return redirect()->route('settings.index', ['tab' => 'categories'])->with('success', 'Category deleted successfully.');
     }
