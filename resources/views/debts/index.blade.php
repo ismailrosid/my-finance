@@ -119,15 +119,15 @@
                                                 <div class="space-y-1.5">
                                                     @foreach($debt->installments as $inst)
                                                         <div class="flex items-center justify-between text-xs py-1.5 px-3 rounded-lg bg-gray-50">
-                                                            <div class="flex items-center gap-2">
-                                                                <span class="font-semibold text-gray-800">#{{ $inst->installment_number }}</span>
-                                                                <span class="text-gray-400">{{ $inst->due_date->format('d M Y') }}</span>
+                                                            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                                                                <span class="font-semibold text-gray-800 w-7 sm:w-8 shrink-0">#{{ $inst->installment_number }}</span>
+                                                                <span class="text-gray-400 w-20 sm:w-[84px] shrink-0 whitespace-nowrap">{{ $inst->due_date->format('d M Y') }}</span>
                                                                 @if($inst->status === 'paid')
-                                                                    <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-700 font-semibold">Paid</span>
+                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-700 font-semibold shrink-0">Paid</span>
                                                                 @elseif($inst->isOverdue())
-                                                                    <span class="px-2 py-0.5 rounded text-[10px] bg-red-100 text-red-700 font-semibold">Overdue</span>
+                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 font-semibold shrink-0">Overdue</span>
                                                                 @else
-                                                                    <span class="px-2 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 font-semibold">Unpaid</span>
+                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 font-semibold shrink-0">Unpaid</span>
                                                                 @endif
                                                             </div>
                                                             <div class="flex items-center gap-3">
