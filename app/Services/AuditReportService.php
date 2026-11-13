@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Models\ReportBatch;
+use App\Models\RevisionInfo;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
@@ -53,6 +55,12 @@ class AuditReportService
             'tables'      => ['md_role', 'md_role_menu', 'user_roles'],
             'actions'     => ['CREATE_ROLE', 'DELETE_ROLE', 'ASSIGN_ROLE', 'UPDATE_PERMISSIONS'],
         ],
+        'audit_revisions' => [
+            'name'        => 'Report Audit Snapshot Temporal (Shadow Tables / Envers)',
+            'description' => 'Mencatat snapshot riwayat komprehensif dari tabel shadow (_aud) dengan revision_type: 0 (CREATE), 1 (UPDATE), 2 (DELETE).',
+            'tables'      => ['transactions_aud', 'accounts_aud', 'debts_aud', 'budgets_aud', 'categories_aud'],
+            'actions'     => [],
+        ],
     ];
 
     public static function getReportTypes(): array
@@ -91,73 +99,78 @@ class AuditReportService
             // Write UTF-8 BOM for Microsoft Excel compatibility
             fprintf($fileHandle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Query audit logs
-            $query = AuditLog::with('user')->orderBy('created_at', 'desc');
-
-            if (!empty($config['tables']) && empty($config['actions'])) {
-                $query->whereIn('table_name', $config['tables']);
-            } elseif (!empty($config['actions']) && !empty($config['tables'])) {
-                $query->where(function ($q) use ($config) {
-                    $q->whereIn('table_name', $config['tables'])
-                      ->orWhereIn('action', $config['actions']);
-                });
-            } elseif (!empty($config['actions'])) {
-                $query->whereIn('action', $config['actions']);
-            }
-
             $params = $batch->parameters ?? [];
-            if (!empty($params['date_from'])) {
-                $query->whereDate('created_at', '>=', $params['date_from']);
-            }
-            if (!empty($params['date_to'])) {
-                $query->whereDate('created_at', '<=', $params['date_to']);
-            }
-            if (!empty($params['target_user_id'])) {
-                $query->where('user_id', $params['target_user_id']);
-            }
 
-            $headers = [
-                'Log ID',
-                'Timestamp',
-                'Action',
-                'Module / Table',
-                'Record ID',
-                'Actor ID',
-                'Actor Name',
-                'Actor Email',
-                'Field Yang Diedit (Fields Modified)',
-                'Sebelum (Before / Old Value)',
-                'Sesudah (After / New Value)',
-                'Perubahan (Before ➔ After)',
-                'IP Address',
-                'User Agent',
-            ];
-            fputcsv($fileHandle, $headers);
+            if ($batch->report_type === 'audit_revisions') {
+                $totalRecords = $this->generateShadowAuditCsv($fileHandle, $params);
+            } else {
+                // Query audit logs
+                $query = AuditLog::with('user')->orderBy('created_at', 'desc');
 
-            $totalRecords = 0;
-            $query->chunk(500, function ($logs) use ($fileHandle, &$totalRecords) {
-                foreach ($logs as $log) {
-                    $totalRecords++;
-                    $diff = self::parseDiff($log->old_values, $log->new_values, $log->action);
-
-                    fputcsv($fileHandle, [
-                        $log->id,
-                        $log->created_at ? $log->created_at->format('Y-m-d H:i:s') : '—',
-                        $log->action,
-                        $log->table_name,
-                        $log->record_id,
-                        $log->user_id ?? '—',
-                        $log->user?->name ?? 'System',
-                        $log->user?->email ?? '—',
-                        $diff['fields_changed'],
-                        $diff['before_text'],
-                        $diff['after_text'],
-                        $diff['changes_summary'],
-                        $log->ip_address ?? '—',
-                        $log->user_agent ?? '—',
-                    ]);
+                if (!empty($config['tables']) && empty($config['actions'])) {
+                    $query->whereIn('table_name', $config['tables']);
+                } elseif (!empty($config['actions']) && !empty($config['tables'])) {
+                    $query->where(function ($q) use ($config) {
+                        $q->whereIn('table_name', $config['tables'])
+                          ->orWhereIn('action', $config['actions']);
+                    });
+                } elseif (!empty($config['actions'])) {
+                    $query->whereIn('action', $config['actions']);
                 }
-            });
+
+                if (!empty($params['date_from'])) {
+                    $query->whereDate('created_at', '>=', $params['date_from']);
+                }
+                if (!empty($params['date_to'])) {
+                    $query->whereDate('created_at', '<=', $params['date_to']);
+                }
+                if (!empty($params['target_user_id'])) {
+                    $query->where('user_id', $params['target_user_id']);
+                }
+
+                $headers = [
+                    'Log ID',
+                    'Timestamp',
+                    'Action',
+                    'Module / Table',
+                    'Record ID',
+                    'Actor ID',
+                    'Actor Name',
+                    'Actor Email',
+                    'Field Yang Diedit (Fields Modified)',
+                    'Sebelum (Before / Old Value)',
+                    'Sesudah (After / New Value)',
+                    'Perubahan (Before ➔ After)',
+                    'IP Address',
+                    'User Agent',
+                ];
+                fputcsv($fileHandle, $headers);
+
+                $totalRecords = 0;
+                $query->chunk(500, function ($logs) use ($fileHandle, &$totalRecords) {
+                    foreach ($logs as $log) {
+                        $totalRecords++;
+                        $diff = self::parseDiff($log->old_values, $log->new_values, $log->action);
+
+                        fputcsv($fileHandle, [
+                            $log->id,
+                            $log->created_at ? $log->created_at->format('Y-m-d H:i:s') : '—',
+                            $log->action,
+                            $log->table_name,
+                            $log->record_id,
+                            $log->user_id ?? '—',
+                            $log->user?->name ?? 'System',
+                            $log->user?->email ?? '—',
+                            $diff['fields_changed'],
+                            $diff['before_text'],
+                            $diff['after_text'],
+                            $diff['changes_summary'],
+                            $log->ip_address ?? '—',
+                            $log->user_agent ?? '—',
+                        ]);
+                    }
+                });
+            }
 
             fclose($fileHandle);
 
@@ -179,6 +192,105 @@ class AuditReportService
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Generate comprehensive temporal report from Envers shadow tables (_aud).
+     */
+    protected function generateShadowAuditCsv($fileHandle, array $params): int
+    {
+        $headers = [
+            'Revision ID',
+            'Audit ID',
+            'Timestamp',
+            'Tipe Revisi (Revision Type)',
+            'Tabel Shadow',
+            'ID Rekaman (Record ID)',
+            'Aktor ID',
+            'Nama Aktor',
+            'Email Aktor',
+            'IP Address',
+            'User Agent',
+            'Ringkasan Snapshot Data',
+        ];
+        fputcsv($fileHandle, $headers);
+
+        $tables = [
+            'transactions_aud' => 'Transaksi',
+            'accounts_aud'     => 'Akun / Rekening',
+            'debts_aud'        => 'Hutang / Piutang',
+            'budgets_aud'      => 'Anggaran / Budget',
+            'categories_aud'   => 'Kategori',
+        ];
+
+        $totalRecords = 0;
+
+        foreach ($tables as $table => $tableLabel) {
+            $query = DB::table($table)
+                ->join('revision_info', "{$table}.revision_id", '=', 'revision_info.id')
+                ->leftJoin('users', 'revision_info.user_id', '=', 'users.id')
+                ->select([
+                    "{$table}.*",
+                    'revision_info.id as rev_id',
+                    'revision_info.user_id as rev_user_id',
+                    'revision_info.ip_address as rev_ip_address',
+                    'revision_info.user_agent as rev_user_agent',
+                    'revision_info.created_at as rev_created_at',
+                    'users.name as rev_user_name',
+                    'users.email as rev_user_email',
+                ]);
+
+            if (!empty($params['date_from'])) {
+                $query->whereDate('revision_info.created_at', '>=', $params['date_from']);
+            }
+            if (!empty($params['date_to'])) {
+                $query->whereDate('revision_info.created_at', '<=', $params['date_to']);
+            }
+            if (!empty($params['target_user_id'])) {
+                $query->where('revision_info.user_id', $params['target_user_id']);
+            }
+
+            $rows = $query->orderBy('revision_info.created_at', 'desc')->get();
+
+            foreach ($rows as $row) {
+                $totalRecords++;
+                $typeStr = match ((int) $row->revision_type) {
+                    RevisionInfo::TYPE_CREATE => '0 - CREATE (Tambah)',
+                    RevisionInfo::TYPE_UPDATE => '1 - UPDATE (Ubah)',
+                    RevisionInfo::TYPE_DELETE => '2 - DELETE (Hapus)',
+                    default                   => "{$row->revision_type} - UNKNOWN",
+                };
+
+                $rowArray = (array) $row;
+                $snapshot = array_diff_key($rowArray, array_flip([
+                    'audit_id', 'revision_id', 'revision_type',
+                    'rev_id', 'rev_user_id', 'rev_ip_address', 'rev_user_agent',
+                    'rev_created_at', 'rev_user_name', 'rev_user_email'
+                ]));
+
+                $snapshotSummary = collect($snapshot)
+                    ->filter(fn($v) => !is_null($v) && $v !== '')
+                    ->map(fn($v, $k) => "{$k}: {$v}")
+                    ->implode(' | ');
+
+                fputcsv($fileHandle, [
+                    $row->revision_id,
+                    $row->audit_id,
+                    $row->rev_created_at ?? '—',
+                    $typeStr,
+                    $tableLabel . " ({$table})",
+                    $row->id,
+                    $row->rev_user_id ?? '—',
+                    $row->rev_user_name ?? 'System',
+                    $row->rev_user_email ?? '—',
+                    $row->rev_ip_address ?? '—',
+                    $row->rev_user_agent ?? '—',
+                    $snapshotSummary,
+                ]);
+            }
+        }
+
+        return $totalRecords;
     }
 
     public static function parseDiff(?array $old, ?array $new, string $action): array
