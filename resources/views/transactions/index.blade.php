@@ -177,7 +177,7 @@
                                             @endif
                                         </td>
                                         <td class="px-5 py-3.5 whitespace-nowrap text-right font-semibold {{ $txn->transaction_type === 'income' ? 'text-emerald-600' : ($txn->transaction_type === 'expense' ? 'text-red-600' : 'text-gray-900') }}">
-                                            {{ $txn->transaction_type === 'income' ? '+' : '-' }} Rp {{ number_format($txn->amount, 0, ',', '.') }}
+                                            <span class="privacy-blur">{{ $txn->transaction_type === 'income' ? '+' : '-' }} Rp {{ number_format($txn->amount, 0, ',', '.') }}</span>
                                         </td>
                                         <td class="px-5 py-3.5 whitespace-nowrap text-center">
                                             <form action="{{ route('transactions.destroy', $txn->id) }}" method="POST">

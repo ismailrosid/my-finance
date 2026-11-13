@@ -21,3 +21,4 @@ class CheckMenuPermission
         return $next($request);
     }
 }
+

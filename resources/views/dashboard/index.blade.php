@@ -122,7 +122,7 @@
                                             {{ $txn->sourceAccount?->account_name ?? '—' }}
                                         </td>
                                         <td class="px-5 py-3.5 whitespace-nowrap text-right font-semibold {{ $txn->transaction_type === 'income' ? 'text-emerald-600' : 'text-gray-900' }}">
-                                            {{ $txn->transaction_type === 'income' ? '+' : '-' }} Rp {{ number_format($txn->amount, 0, ',', '.') }}
+                                            <span class="privacy-blur">{{ $txn->transaction_type === 'income' ? '+' : '-' }} Rp {{ number_format($txn->amount, 0, ',', '.') }}</span>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -159,7 +159,7 @@
                                 <div>
                                     <div class="flex items-center justify-between text-xs mb-1">
                                         <span class="font-medium text-gray-700">{{ $b->category?->category_name }}</span>
-                                        <span class="text-gray-500">Rp {{ number_format($b->spent_amount, 0, ',', '.') }} / {{ number_format($b->amount_limit, 0, ',', '.') }}</span>
+                                        <span class="text-gray-500"><span class="privacy-blur">Rp {{ number_format($b->spent_amount, 0, ',', '.') }} / {{ number_format($b->amount_limit, 0, ',', '.') }}</span></span>
                                     </div>
                                     <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
                                         <div class="h-1.5 rounded-full {{ $b->isOverBudget() ? 'bg-red-500' : ($b->isAlertThresholdReached() ? 'bg-amber-500' : 'bg-emerald-500') }}" style="width: {{ min(100, $b->usage_percentage) }}%"></div>
@@ -197,7 +197,7 @@
                                         <p class="text-xs font-medium text-gray-900">{{ $inst->debt?->creditor_name }}</p>
                                         <p class="text-[11px] text-gray-400">Due: {{ $inst->due_date->format('d M Y') }}</p>
                                     </div>
-                                    <span class="text-xs font-semibold text-gray-900">
+                                    <span class="text-xs font-semibold text-gray-900 privacy-blur">
                                         Rp {{ number_format($inst->amount, 0, ',', '.') }}
                                     </span>
                                 </div>

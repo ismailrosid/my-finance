@@ -96,8 +96,8 @@
 
                                             <div class="text-right">
                                                 <p class="text-xs text-gray-400">Remaining</p>
-                                                <p class="text-base font-bold text-gray-900">{{ $debt->formatted_remaining }}</p>
-                                                <p class="text-[11px] text-gray-400">Total: Rp {{ number_format($debt->total_amount, 0, ',', '.') }}</p>
+                                                <p class="text-base font-bold text-gray-900"><span class="privacy-blur">{{ $debt->formatted_remaining }}</span></p>
+                                                <p class="text-[11px] text-gray-400">Total: <span class="privacy-blur">Rp {{ number_format($debt->total_amount, 0, ',', '.') }}</span></p>
                                             </div>
                                         </div>
 
@@ -131,7 +131,7 @@
                                                                 @endif
                                                             </div>
                                                             <div class="flex items-center gap-3">
-                                                                <span class="font-bold text-gray-900">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
+                                                                <span class="font-bold text-gray-900 privacy-blur">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
                                                                 @if($inst->status !== 'paid')
                                                                     <button
                                                                         type="button"
@@ -172,7 +172,7 @@
                                     <div class="p-3.5 rounded-xl border border-gray-100 bg-gray-50/60">
                                         <div class="flex items-center justify-between">
                                             <p class="text-xs font-semibold text-gray-900">{{ $inst->debt?->creditor_name }}</p>
-                                            <span class="text-xs font-bold text-red-600">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
+                                            <span class="text-xs font-bold text-red-600 privacy-blur">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
                                         </div>
                                         <p class="text-[11px] text-gray-400 mt-1">Due: {{ $inst->due_date->format('d M Y') }} &bull; Installment #{{ $inst->installment_number }}</p>
                                     </div>

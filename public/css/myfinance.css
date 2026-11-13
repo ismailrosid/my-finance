@@ -537,3 +537,24 @@ a.is-submitting,
     justify-content: center;
     flex-shrink: 0;
 }
+
+/* Privacy Blur Mode */
+.privacy-blur {
+    transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    display: inline-block;
+    border-radius: 4px;
+}
+
+.privacy-mode .privacy-blur {
+    filter: blur(7px);
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
+}
+
+.privacy-mode .privacy-blur:hover,
+.privacy-mode .privacy-blur:active,
+.privacy-mode .privacy-blur:focus,
+.privacy-mode .privacy-blur.privacy-revealed {
+    filter: blur(0px) !important;
+}

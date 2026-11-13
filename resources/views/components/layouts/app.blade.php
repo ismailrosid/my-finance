@@ -20,12 +20,41 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700&display=swap" rel="stylesheet" />
 
-    <!-- Global Poppins Font Enforcement -->
+    <!-- Global Poppins Font Enforcement & Privacy Blur Mode -->
     <style>
         html, body, button, input, select, textarea, .form-input, .form-select, .form-label {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         }
+
+        /* Privacy Blur Mode */
+        .privacy-blur {
+            transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+            display: inline-block;
+            border-radius: 4px;
+        }
+
+        .privacy-mode .privacy-blur {
+            filter: blur(7px);
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+        }
+
+        /* Hover or click/tap to reveal */
+        .privacy-mode .privacy-blur:hover,
+        .privacy-mode .privacy-blur:active,
+        .privacy-mode .privacy-blur:focus,
+        .privacy-mode .privacy-blur.privacy-revealed {
+            filter: blur(0px) !important;
+        }
     </style>
+
+    <!-- Immediate execution to apply privacy mode before DOM render -->
+    <script>
+        if (localStorage.getItem('privacy_mode') === 'true') {
+            document.documentElement.classList.add('privacy-mode');
+        }
+    </script>
 
     <!-- Styles & Scripts -->
     @if (file_exists(public_path('build/manifest.json')))
@@ -123,6 +152,30 @@
     <x-ui.toast-container />
 
     <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('privacy', {
+                active: localStorage.getItem('privacy_mode') === 'true',
+                toggle() {
+                    this.active = !this.active;
+                    localStorage.setItem('privacy_mode', this.active);
+                    if (this.active) {
+                        document.documentElement.classList.add('privacy-mode');
+                    } else {
+                        document.documentElement.classList.remove('privacy-mode');
+                        document.querySelectorAll('.privacy-revealed').forEach(el => el.classList.remove('privacy-revealed'));
+                    }
+                }
+            });
+        });
+
+        // Click / Tap to toggle peek on specific blurred value
+        document.addEventListener('click', (e) => {
+            const el = e.target.closest('.privacy-blur');
+            if (el && document.documentElement.classList.contains('privacy-mode')) {
+                el.classList.toggle('privacy-revealed');
+            }
+        });
+
         function layout() {
             return {
                 sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false',

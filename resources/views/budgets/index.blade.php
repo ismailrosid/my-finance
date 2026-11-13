@@ -95,7 +95,7 @@
                                 <span class="inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded" style="background-color: {{ $b->category?->color }}20; color: {{ $b->category?->color }}">
                                     {{ $b->category?->category_name }}
                                 </span>
-                                <h3 class="text-base font-bold text-gray-900 mt-1">Rp {{ number_format($b->amount_limit, 0, ',', '.') }}</h3>
+                                <h3 class="text-base font-bold text-gray-900 mt-1"><span class="privacy-blur">Rp {{ number_format($b->amount_limit, 0, ',', '.') }}</span></h3>
                             </div>
                             <div class="text-right">
                                 @if($b->isOverBudget())
@@ -111,7 +111,7 @@
                         {{-- Progress Bar --}}
                         <div class="space-y-1 mb-3">
                             <div class="flex items-center justify-between text-xs text-gray-500">
-                                <span>Spent: Rp {{ number_format($b->spent_amount, 0, ',', '.') }}</span>
+                                <span>Spent: <span class="privacy-blur">Rp {{ number_format($b->spent_amount, 0, ',', '.') }}</span></span>
                                 <span class="font-semibold">{{ $b->usage_percentage }}%</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -120,7 +120,7 @@
                         </div>
 
                         <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-                            <span class="text-gray-400">Remaining: <strong class="text-gray-700 font-semibold">Rp {{ number_format($b->remaining_amount, 0, ',', '.') }}</strong></span>
+                            <span class="text-gray-400">Remaining: <strong class="text-gray-700 font-semibold"><span class="privacy-blur">Rp {{ number_format($b->remaining_amount, 0, ',', '.') }}</span></strong></span>
                             <form action="{{ route('budgets.destroy', $b->id) }}" method="POST">
                                 @csrf
                                 @method('DELETE')

@@ -109,30 +109,30 @@
                     <tbody class="divide-y divide-gray-100">
                         <tr class="bg-emerald-50/30">
                             <td class="px-5 py-3 font-semibold text-gray-900">A. Actual Inflows (Received)</td>
-                            <td class="px-5 py-3 text-right font-bold text-emerald-700">Rp {{ number_format($actualIncome, 0, ',', '.') }}</td>
+                            <td class="px-5 py-3 text-right font-bold text-emerald-700"><span class="privacy-blur">Rp {{ number_format($actualIncome, 0, ',', '.') }}</span></td>
                         </tr>
                         <tr>
                             <td class="px-5 py-2.5 pl-9 text-gray-600">Expected / Pending Inflow</td>
-                            <td class="px-5 py-2.5 text-right text-gray-500">Rp {{ number_format($expectedIncome, 0, ',', '.') }}</td>
+                            <td class="px-5 py-2.5 text-right text-gray-500"><span class="privacy-blur">Rp {{ number_format($expectedIncome, 0, ',', '.') }}</span></td>
                         </tr>
                         <tr class="bg-red-50/30">
                             <td class="px-5 py-3 font-semibold text-gray-900">B. Operating Outflows (Expenses)</td>
-                            <td class="px-5 py-3 text-right font-bold text-red-700">- Rp {{ number_format($actualExpense, 0, ',', '.') }}</td>
+                            <td class="px-5 py-3 text-right font-bold text-red-700"><span class="privacy-blur">- Rp {{ number_format($actualExpense, 0, ',', '.') }}</span></td>
                         </tr>
                         <tr class="bg-purple-50/30">
                             <td class="px-5 py-3 font-semibold text-gray-900">C. Debt & Liability Payments</td>
-                            <td class="px-5 py-3 text-right font-bold text-purple-700">- Rp {{ number_format($debtPayments, 0, ',', '.') }}</td>
+                            <td class="px-5 py-3 text-right font-bold text-purple-700"><span class="privacy-blur">- Rp {{ number_format($debtPayments, 0, ',', '.') }}</span></td>
                         </tr>
                         <tr class="bg-gray-100 font-bold">
                             <td class="px-5 py-3.5 text-gray-900">Net Actual Cashflow (A - B - C)</td>
                             <td class="px-5 py-3.5 text-right {{ $actualCashflow >= 0 ? 'text-emerald-700' : 'text-red-700' }}">
-                                Rp {{ number_format($actualCashflow, 0, ',', '.') }}
+                                <span class="privacy-blur">Rp {{ number_format($actualCashflow, 0, ',', '.') }}</span>
                             </td>
                         </tr>
                         <tr class="border-t-2 border-gray-200">
                             <td class="px-5 py-3.5 text-gray-700 font-semibold">Projected Cashflow (including Expected Income)</td>
                             <td class="px-5 py-3.5 text-right font-bold text-blue-700">
-                                Rp {{ number_format($projectedCashflow, 0, ',', '.') }}
+                                <span class="privacy-blur">Rp {{ number_format($projectedCashflow, 0, ',', '.') }}</span>
                             </td>
                         </tr>
                     </tbody>

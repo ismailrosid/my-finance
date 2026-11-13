@@ -35,9 +35,11 @@
     <div class="flex items-end justify-between">
         <div>
             <p class="text-2xl font-bold text-gray-900 leading-none">
-                @if ($prefix)<span class="text-base font-semibold text-gray-500 mr-0.5">{{ $prefix }}</span>@endif
-                {{ $value ?? '—' }}
-                @if ($suffix)<span class="text-base font-semibold text-gray-500 ml-0.5">{{ $suffix }}</span>@endif
+                <span class="privacy-blur">
+                    @if ($prefix)<span class="text-base font-semibold text-gray-500 mr-0.5">{{ $prefix }}</span>@endif
+                    {{ $value ?? '—' }}
+                    @if ($suffix)<span class="text-base font-semibold text-gray-500 ml-0.5">{{ $suffix }}</span>@endif
+                </span>
             </p>
         </div>
         @if ($change !== null)

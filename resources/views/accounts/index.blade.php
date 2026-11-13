@@ -88,7 +88,7 @@
                         <div class="mt-4 pt-3 border-t border-gray-100 flex items-end justify-between">
                             <div>
                                 <p class="text-xs text-gray-400">Current Balance</p>
-                                <p class="text-lg font-bold text-gray-900">{{ $acc->formatted_balance }}</p>
+                                <p class="text-lg font-bold text-gray-900"><span class="privacy-blur">{{ $acc->formatted_balance }}</span></p>
                             </div>
                             <div class="flex items-center gap-1">
                                 <form action="{{ route('accounts.destroy', $acc->id) }}" method="POST">
