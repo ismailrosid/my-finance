@@ -72,6 +72,7 @@
     <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-6">
 
         {{-- Overview --}}
+        @if(auth()->check() && auth()->user()->hasPermission('dashboard'))
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
@@ -92,14 +93,25 @@
                 </li>
             </ul>
         </div>
+        @endif
 
         {{-- Financial Management --}}
+        @php
+            $showFinancial = auth()->check() && (
+                auth()->user()->hasPermission('transactions') ||
+                auth()->user()->hasPermission('accounts') ||
+                auth()->user()->hasPermission('debts') ||
+                auth()->user()->hasPermission('budgets')
+            );
+        @endphp
+        @if($showFinancial)
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
                 Financial Management
             </p>
             <ul class="space-y-0.5">
+                @if(auth()->user()->hasPermission('transactions'))
                 <li>
                     <a href="{{ route('transactions.index') }}"
                        @click="if (isMobile) mobileOpen = false"
@@ -111,6 +123,8 @@
                               :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Transactions</span>
                     </a>
                 </li>
+                @endif
+                @if(auth()->user()->hasPermission('accounts'))
                 <li>
                     <a href="{{ route('accounts.index') }}"
                        @click="if (isMobile) mobileOpen = false"
@@ -122,6 +136,8 @@
                               :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Accounts</span>
                     </a>
                 </li>
+                @endif
+                @if(auth()->user()->hasPermission('debts'))
                 <li>
                     <a href="{{ route('debts.index') }}"
                        @click="if (isMobile) mobileOpen = false"
@@ -133,6 +149,8 @@
                               :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Debts & Installments</span>
                     </a>
                 </li>
+                @endif
+                @if(auth()->user()->hasPermission('budgets'))
                 <li>
                     <a href="{{ route('budgets.index') }}"
                        @click="if (isMobile) mobileOpen = false"
@@ -144,10 +162,13 @@
                               :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Budgets</span>
                     </a>
                 </li>
+                @endif
             </ul>
         </div>
+        @endif
 
         {{-- Analytics --}}
+        @if(auth()->check() && auth()->user()->hasPermission('reports'))
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
@@ -167,8 +188,10 @@
                 </li>
             </ul>
         </div>
+        @endif
 
         {{-- Preferences --}}
+        @if(auth()->check() && auth()->user()->hasPermission('settings'))
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
@@ -189,8 +212,10 @@
                 </li>
             </ul>
         </div>
+        @endif
 
         {{-- Administration --}}
+        @if(auth()->check() && auth()->user()->hasPermission('roles'))
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
@@ -210,6 +235,7 @@
                 </li>
             </ul>
         </div>
+        @endif
 
     </nav>
 </aside>

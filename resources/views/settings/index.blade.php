@@ -4,9 +4,38 @@
             'expense' => 'Expense (Pengeluaran)',
             'income'  => 'Income (Pemasukan)',
         ];
+
+        $catErrors = $errors->hasAny(['category_name', 'category_type', 'color', 'icon']);
+        $secErrors = $errors->hasAny(['current_password', 'password', 'password_confirmation']);
+        $profileErrors = $errors->hasAny(['name', 'phone_number']);
+
+        if ($catErrors) {
+            $initialTab = 'categories';
+        } elseif ($secErrors) {
+            $initialTab = 'security';
+        } elseif ($profileErrors) {
+            $initialTab = 'profile';
+        } else {
+            $initialTab = request()->query('tab', session('active_tab', 'profile'));
+        }
+
+        if (!in_array($initialTab, ['profile', 'categories', 'security'])) {
+            $initialTab = 'profile';
+        }
     @endphp
 
-    <div x-data="{ activeTab: @js($errors->any() ? 'categories' : 'profile'), openCatModal: @js($errors->any()) }">
+    <div x-data="{
+        activeTab: @js($initialTab),
+        openCatModal: @js($catErrors),
+        setTab(tab) {
+            this.activeTab = tab;
+            if (window.history && window.history.replaceState) {
+                const url = new URL(window.location);
+                url.searchParams.set('tab', tab);
+                window.history.replaceState({}, '', url);
+            }
+        }
+    }">
 
         <x-page-header
             title="Settings"
@@ -21,19 +50,19 @@
         <div class="border-b border-gray-200 mb-6">
             <nav class="flex space-x-6 text-sm font-medium">
                 <button
-                    @click="activeTab = 'profile'"
+                    @click="setTab('profile')"
                     :class="activeTab === 'profile' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition cursor-pointer">
                     Profile Settings
                 </button>
                 <button
-                    @click="activeTab = 'categories'"
+                    @click="setTab('categories')"
                     :class="activeTab === 'categories' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition cursor-pointer">
                     Categories
                 </button>
                 <button
-                    @click="activeTab = 'security'"
+                    @click="setTab('security')"
                     :class="activeTab === 'security' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition cursor-pointer">
                     Security & Password
@@ -42,7 +71,7 @@
         </div>
 
         {{-- Tab 1: Profile --}}
-        <div x-show="activeTab === 'profile'" class="max-w-2xl">
+        <div x-show="activeTab === 'profile'" @if($initialTab !== 'profile') x-cloak @endif class="max-w-2xl">
             <div class="card p-6">
                 <h3 class="text-base font-semibold text-gray-900 mb-4">Personal Information</h3>
                 <form action="{{ route('settings.update-profile') }}" method="POST" class="space-y-4" novalidate>
@@ -81,7 +110,7 @@
         </div>
 
         {{-- Tab 2: Categories --}}
-        <div x-show="activeTab === 'categories'" style="display: none;" class="space-y-6">
+        <div x-show="activeTab === 'categories'" @if($initialTab !== 'categories') x-cloak @endif class="space-y-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h3 class="text-base font-semibold text-gray-900">Financial Categories</h3>
@@ -215,7 +244,7 @@
         </div>
 
         {{-- Tab 3: Security --}}
-        <div x-show="activeTab === 'security'" style="display: none;" class="max-w-2xl">
+        <div x-show="activeTab === 'security'" @if($initialTab !== 'security') x-cloak @endif class="max-w-2xl">
             <div class="card p-6">
                 <h3 class="text-base font-semibold text-gray-900 mb-4">Change Password</h3>
                 <form action="{{ route('settings.update-password') }}" method="POST" class="space-y-4" novalidate>

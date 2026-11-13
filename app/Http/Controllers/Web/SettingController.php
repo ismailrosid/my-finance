@@ -39,7 +39,7 @@ class SettingController extends Controller
 
         AuditLog::record($user->id, 'UPDATE', 'users', $user->id, $oldValues, $user->toArray());
 
-        return redirect()->route('settings.index')->with('success', 'Profile updated successfully.');
+        return redirect()->route('settings.index', ['tab' => 'profile'])->with('success', 'Profile updated successfully.');
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -55,7 +55,7 @@ class SettingController extends Controller
         ]);
 
         if (!Hash::check($validated['current_password'], $user->password)) {
-            return redirect()->back()->withErrors(['current_password' => 'The provided current password does not match our records.']);
+            return redirect()->route('settings.index', ['tab' => 'security'])->withErrors(['current_password' => 'The provided current password does not match our records.']);
         }
 
         $user->update([
@@ -64,7 +64,7 @@ class SettingController extends Controller
 
         AuditLog::record($user->id, 'UPDATE_PASSWORD', 'users', $user->id, null, null);
 
-        return redirect()->route('settings.index')->with('success', 'Password updated successfully.');
+        return redirect()->route('settings.index', ['tab' => 'security'])->with('success', 'Password updated successfully.');
     }
 
     public function categories(): View
@@ -96,7 +96,7 @@ class SettingController extends Controller
             'is_active'     => true,
         ]);
 
-        return redirect()->route('settings.index')->with('success', 'Category created successfully.');
+        return redirect()->route('settings.index', ['tab' => 'categories'])->with('success', 'Category created successfully.');
     }
 
     public function updateCategory(Request $request, int $id): RedirectResponse
@@ -116,7 +116,7 @@ class SettingController extends Controller
             'is_active'     => $request->has('is_active'),
         ]);
 
-        return redirect()->route('settings.index')->with('success', 'Category updated successfully.');
+        return redirect()->route('settings.index', ['tab' => 'categories'])->with('success', 'Category updated successfully.');
     }
 
     public function destroyCategory(int $id): RedirectResponse
@@ -126,6 +126,6 @@ class SettingController extends Controller
 
         $category->delete();
 
-        return redirect()->route('settings.index')->with('success', 'Category deleted successfully.');
+        return redirect()->route('settings.index', ['tab' => 'categories'])->with('success', 'Category deleted successfully.');
     }
 }

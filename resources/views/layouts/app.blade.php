@@ -1,3 +1,5 @@
+@props(['title' => null])
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
@@ -5,13 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ isset($title) ? $title . ' — ' . config('app.name') : config('app.name') }}</title>
+    <title>{{ $title ? $title . ' — ' . config('app.name') : config('app.name') }}</title>
     <meta name="description" content="Personal Finance Management">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
-    <!-- Fonts -->
     <!-- Fonts: Google Fonts (Primary) & Bunny Fonts (Fallback) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,25 +20,77 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700&display=swap" rel="stylesheet" />
 
+    <!-- Global Poppins Font Enforcement -->
     <style>
-        html, body, button, input, select, textarea {
+        html, body, button, input, select, textarea, .form-input, .form-select, .form-label {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         }
     </style>
 
     <!-- Styles & Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    {{ $styles ?? '' }}
+    @if (file_exists(public_path('build/manifest.json')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @else
+        <link rel="stylesheet" href="{{ asset('css/myfinance.css') }}">
+        <script src="https://cdn.tailwindcss.com"></script>
+    @endif
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        spacing: {
+                            '8.5': '2.125rem',
+                            '10.5': '2.625rem',
+                        },
+                        borderRadius: {
+                            'xl': '0.75rem',
+                            '2xl': '1rem',
+                        },
+                        colors: {
+                            stroke: '#E2E8F0',
+                            strokedark: '#2E3A47',
+                            boxdark: '#24303F',
+                            body: '#64748B',
+                            primary: {
+                                50: '#ecfdf5',
+                                100: '#d1fae5',
+                                200: '#a7f3d0',
+                                300: '#6ee7b7',
+                                400: '#34d399',
+                                500: '#10b981',
+                                600: '#059669',
+                                700: '#047857',
+                                800: '#065f46',
+                                900: '#064e3b',
+                                950: '#022c22',
+                            }
+                        },
+                        fontFamily: {
+                            sans: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                            poppins: ['Poppins', 'sans-serif'],
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js (local with fallback) -->
+    <script defer src="{{ asset('js/alpine.min.js') }}"></script>
+    <script>
+        if (!window.Alpine) {
+            document.write('<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"><\/script>');
+        }
+    </script>
 </head>
-<body class="h-full bg-gray-50" x-data="layout()" x-cloak>
+<body class="h-full bg-gray-50 text-gray-900" x-data="layout()">
 
-    <div class="flex h-full">
+    <div class="flex min-h-screen">
         <!-- Sidebar -->
         @include('layouts.partials.sidebar')
 
         <!-- Main area -->
-        <div class="flex flex-col flex-1 min-w-0 transition-all duration-300"
+        <div class="flex flex-col flex-1 min-w-0 transition-all duration-300 lg:ml-[260px]"
              :class="sidebarOpen ? 'lg:ml-[260px]' : 'lg:ml-[72px]'">
 
             <!-- Top Header -->
@@ -45,9 +98,7 @@
 
             <!-- Page Content -->
             <main class="flex-1 overflow-y-auto">
-                <div class="px-6 py-6 max-w-screen-xl mx-auto">
-                    {{ $slot }}
-
+                <div class="px-4 sm:px-6 py-6 max-w-screen-xl mx-auto">
                     {{ $slot }}
                 </div>
             </main>
@@ -67,7 +118,9 @@
          x-cloak>
     </div>
 
-    {{ $scripts ?? '' }}
+    <!-- Global UI Components: Confirmation Dialog & Toast Container -->
+    <x-ui.confirmation-dialog />
+    <x-ui.toast-container />
 
     <script>
         function layout() {
@@ -98,4 +151,3 @@
     </script>
 </body>
 </html>
-

@@ -49,7 +49,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Transactions
-    Route::prefix('transactions')->name('transactions.')->group(function () {
+    Route::prefix('transactions')->name('transactions.')->middleware('menu.permission:transactions')->group(function () {
         Route::get('/',           [TransactionController::class, 'index'])->name('index');
         Route::get('/create',     [TransactionController::class, 'create'])->name('create');
         Route::post('/',          [TransactionController::class, 'store'])->name('store');
@@ -59,7 +59,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Accounts
-    Route::prefix('accounts')->name('accounts.')->group(function () {
+    Route::prefix('accounts')->name('accounts.')->middleware('menu.permission:accounts')->group(function () {
         Route::get('/',           [AccountController::class, 'index'])->name('index');
         Route::get('/create',     [AccountController::class, 'create'])->name('create');
         Route::post('/',          [AccountController::class, 'store'])->name('store');
@@ -70,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Debts & Installments
-    Route::prefix('debts')->name('debts.')->group(function () {
+    Route::prefix('debts')->name('debts.')->middleware('menu.permission:debts')->group(function () {
         Route::get('/',                            [DebtController::class, 'index'])->name('index');
         Route::get('/create',                      [DebtController::class, 'create'])->name('create');
         Route::post('/',                           [DebtController::class, 'store'])->name('store');
@@ -83,7 +83,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Budgets
-    Route::prefix('budgets')->name('budgets.')->group(function () {
+    Route::prefix('budgets')->name('budgets.')->middleware('menu.permission:budgets')->group(function () {
         Route::get('/',           [BudgetController::class, 'index'])->name('index');
         Route::get('/create',     [BudgetController::class, 'create'])->name('create');
         Route::post('/',          [BudgetController::class, 'store'])->name('store');
@@ -93,14 +93,14 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Reports
-    Route::prefix('reports')->name('reports.')->group(function () {
+    Route::prefix('reports')->name('reports.')->middleware('menu.permission:reports')->group(function () {
         Route::get('/',           [ReportController::class, 'index'])->name('index');
         Route::get('/cashflow',   [ReportController::class, 'cashflow'])->name('cashflow');
         Route::get('/export',     [ReportController::class, 'export'])->name('export');
     });
 
     // Settings
-    Route::prefix('settings')->name('settings.')->group(function () {
+    Route::prefix('settings')->name('settings.')->middleware('menu.permission:settings')->group(function () {
         Route::get('/',           [SettingController::class, 'index'])->name('index');
         Route::put('/profile',    [SettingController::class, 'updateProfile'])->name('update-profile');
         Route::put('/password',   [SettingController::class, 'updatePassword'])->name('update-password');
@@ -111,7 +111,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Role & Access Management (RBAC)
-    Route::prefix('roles')->name('roles.')->group(function () {
+    Route::prefix('roles')->name('roles.')->middleware('menu.permission:roles')->group(function () {
         Route::get('/',                 [RoleManagementController::class, 'index'])->name('index');
         Route::post('/',                [RoleManagementController::class, 'storeRole'])->name('store');
         Route::put('/{id}/permissions', [RoleManagementController::class, 'updatePermissions'])->name('update-permissions');
