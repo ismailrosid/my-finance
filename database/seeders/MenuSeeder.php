@@ -83,6 +83,15 @@ class MenuSeeder extends Seeder
                 'menu_order' => 8,
                 'is_active'  => true,
             ],
+            [
+                'parent_id'  => null,
+                'menu_code'  => 'audit',
+                'menu_name'  => 'Audit Reports',
+                'menu_url'   => '/audit-reports',
+                'menu_icon'  => 'heroicon-o-document-chart-bar',
+                'menu_order' => 9,
+                'is_active'  => true,
+            ],
         ];
 
         foreach ($menus as $menu) {

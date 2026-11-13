@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\SettingController;
 use App\Http\Controllers\Web\RoleManagementController;
 use App\Http\Controllers\Web\NotificationController;
+use App\Http\Controllers\Web\AuditReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -117,6 +118,14 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}/permissions', [RoleManagementController::class, 'updatePermissions'])->name('update-permissions');
         Route::post('/assign-user',     [RoleManagementController::class, 'assignUserRole'])->name('assign-user');
         Route::delete('/{id}',          [RoleManagementController::class, 'destroyRole'])->name('destroy');
+    });
+
+    // Audit Reports (RBAC: audit)
+    Route::prefix('audit-reports')->name('audit-reports.')->middleware('menu.permission:audit')->group(function () {
+        Route::get('/',              [AuditReportController::class, 'index'])->name('index');
+        Route::post('/generate',     [AuditReportController::class, 'generate'])->name('generate');
+        Route::get('/{id}/download', [AuditReportController::class, 'download'])->name('download');
+        Route::delete('/{id}',       [AuditReportController::class, 'destroy'])->name('destroy');
     });
 
     // Realtime Notifications & Polling

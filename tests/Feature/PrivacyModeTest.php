@@ -145,3 +145,4 @@ class PrivacyModeTest extends TestCase
         $response->assertSee('class="privacy-blur"', false);
     }
 }
+
