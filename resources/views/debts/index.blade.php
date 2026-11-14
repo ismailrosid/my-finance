@@ -80,9 +80,9 @@
                             <div class="divide-y divide-gray-100">
                                 @foreach($debts as $debt)
                                     <div class="p-5 hover:bg-gray-50/50 transition">
-                                        <div class="flex items-start justify-between">
+                                        <div class="flex items-start justify-between gap-4">
                                             <div>
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex items-center gap-2 flex-wrap">
                                                     <h3 class="text-sm font-semibold text-gray-900">{{ $debt->creditor_name }}</h3>
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold {{ $debt->direction === 'payable' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700' }}">
                                                         {{ $debt->direction === 'payable' ? __('debts.payable') : __('debts.receivable') }}
@@ -94,24 +94,45 @@
                                                         {{ $debt->repayment_frequency_label }}
                                                     </span>
                                                 </div>
-                                                <p class="text-xs text-gray-500 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                                    <span>{{ __('debts.due_date') }}: <strong class="text-gray-700">{{ \App\Support\FormatHelper::date($debt->due_date) }}</strong></span>
-                                                    <span>&bull;</span>
-                                                    <span>{{ __('debts.tenor') }}: <strong class="text-gray-700">{{ $debt->formatted_tenor }}</strong></span>
-                                                    <span>&bull;</span>
-                                                    <span>{{ __('debts.interest_rate') }}: <strong class="text-gray-700">{{ $debt->formatted_interest }}</strong></span>
-                                                    @if((float) $debt->fee_amount > 0)
-                                                        <span>&bull;</span>
-                                                        <span>{{ __('debts.admin_fee') }}: <strong class="text-purple-700">{{ $debt->formatted_admin_fee }}</strong></span>
-                                                    @endif
-                                                </p>
                                             </div>
 
-                                            <div class="text-right">
+                                            <div class="text-right shrink-0">
                                                 <p class="text-xs text-gray-400">{{ __('debts.outstanding_balance') }}</p>
                                                 <p class="text-base font-bold text-gray-900"><span class="privacy-blur">{{ \App\Support\FormatHelper::currency($debt->remaining_amount) }}</span></p>
                                                 <p class="text-[11px] text-gray-400">{{ __('debts.total_repayment') }}: <span class="privacy-blur">{{ \App\Support\FormatHelper::currency($debt->total_amount) }}</span></p>
                                             </div>
+                                        </div>
+
+                                        {{-- Mini Table: Loan Configuration & Terms --}}
+                                        <div class="mt-3.5 overflow-x-auto rounded-lg border border-gray-100 bg-gray-50/50">
+                                            <table class="w-full text-xs text-left">
+                                                <thead class="bg-gray-50/80 border-b border-gray-100 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                                                    <tr>
+                                                        <th scope="col" class="px-3 py-2 whitespace-nowrap">{{ __('debts.due_date') }}</th>
+                                                        <th scope="col" class="px-3 py-2 whitespace-nowrap">{{ __('debts.tenor') }}</th>
+                                                        <th scope="col" class="px-3 py-2 whitespace-nowrap">{{ __('debts.interest_rate') }}</th>
+                                                        <th scope="col" class="px-3 py-2 whitespace-nowrap">{{ __('debts.admin_fee') }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-50 bg-white">
+                                                    <tr class="text-gray-700">
+                                                        <td class="px-3 py-2 whitespace-nowrap font-medium text-gray-900">
+                                                            {{ \App\Support\FormatHelper::date($debt->due_date) }}
+                                                        </td>
+                                                        <td class="px-3 py-2 whitespace-nowrap text-gray-700 font-medium">
+                                                            {{ $debt->formatted_tenor }}
+                                                        </td>
+                                                        <td class="px-3 py-2 whitespace-nowrap text-gray-700">
+                                                            {{ $debt->formatted_interest }}
+                                                        </td>
+                                                        <td class="px-3 py-2 whitespace-nowrap font-medium">
+                                                            <span class="{{ (float) $debt->fee_amount > 0 ? 'text-purple-700' : 'text-gray-500' }}">
+                                                                {{ $debt->formatted_admin_fee }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
 
                                         {{-- Progress Bar --}}
