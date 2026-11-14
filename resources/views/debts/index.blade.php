@@ -23,7 +23,7 @@
         }
     @endphp
 
-    <div x-data="{ openModal: @js($errors->any()), payModal: false, selectedInstallment: {}, selectedDebtId: null }">
+    <div x-data="debtManager()">
 
         <x-page-header
             title="Debts & Installments"
@@ -90,8 +90,21 @@
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
                                                         {{ str_replace('_', ' ', ucfirst($debt->debt_type)) }}
                                                     </span>
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700">
+                                                        {{ $debt->repayment_frequency_label }}
+                                                    </span>
                                                 </div>
-                                                <p class="text-xs text-gray-400 mt-1">Due Date: {{ $debt->due_date->format('d M Y') }} &bull; Tenor: {{ $debt->tenor_months }} month(s)</p>
+                                                <p class="text-xs text-gray-500 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                                    <span>Due: <strong class="text-gray-700">{{ $debt->due_date->format('d M Y') }}</strong></span>
+                                                    <span>&bull;</span>
+                                                    <span>Tenor: <strong class="text-gray-700">{{ $debt->formatted_tenor }}</strong></span>
+                                                    <span>&bull;</span>
+                                                    <span>Interest: <strong class="text-gray-700">{{ $debt->formatted_interest }}</strong></span>
+                                                    @if((float) $debt->fee_amount > 0)
+                                                        <span>&bull;</span>
+                                                        <span>Admin Fee: <strong class="text-purple-700">{{ $debt->formatted_admin_fee }}</strong></span>
+                                                    @endif
+                                                </p>
                                             </div>
 
                                             <div class="text-right">
@@ -115,13 +128,13 @@
                                         {{-- Installments Table Accordion / Preview --}}
                                         @if($debt->installments->isNotEmpty())
                                             <div class="mt-4 pt-3 border-t border-gray-100">
-                                                <p class="text-xs font-semibold text-gray-700 mb-2">Installment Schedule</p>
+                                                <p class="text-xs font-semibold text-gray-700 mb-2">Installment Schedule ({{ $debt->installments->count() }} termin)</p>
                                                 <div class="space-y-1.5">
                                                     @foreach($debt->installments as $inst)
-                                                        <div class="flex items-center justify-between text-xs py-1.5 px-3 rounded-lg bg-gray-50">
+                                                        <div class="flex items-center justify-between text-xs py-2 px-3 rounded-lg bg-gray-50 hover:bg-gray-100/70 transition">
                                                             <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                                                                 <span class="font-semibold text-gray-800 w-7 sm:w-8 shrink-0">#{{ $inst->installment_number }}</span>
-                                                                <span class="text-gray-400 w-20 sm:w-[84px] shrink-0 whitespace-nowrap">{{ $inst->due_date->format('d M Y') }}</span>
+                                                                <span class="text-gray-500 w-20 sm:w-[84px] shrink-0 whitespace-nowrap">{{ $inst->due_date->format('d M Y') }}</span>
                                                                 @if($inst->status === 'paid')
                                                                     <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-700 font-semibold shrink-0">Paid</span>
                                                                 @elseif($inst->isOverdue())
@@ -131,7 +144,18 @@
                                                                 @endif
                                                             </div>
                                                             <div class="flex items-center gap-3">
-                                                                <span class="font-bold text-gray-900 privacy-blur">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
+                                                                <div class="text-right">
+                                                                    <span class="font-bold text-gray-900 privacy-blur block">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
+                                                                    <span class="text-[10px] text-gray-400 block">
+                                                                        Pokok: Rp {{ number_format($inst->principal_amount, 0, ',', '.') }}
+                                                                        @if((float) $inst->interest_amount > 0)
+                                                                            &bull; Bunga: Rp {{ number_format($inst->interest_amount, 0, ',', '.') }}
+                                                                        @endif
+                                                                        @if((float) $inst->fee_amount > 0)
+                                                                            &bull; Admin: Rp {{ number_format($inst->fee_amount, 0, ',', '.') }}
+                                                                        @endif
+                                                                    </span>
+                                                                </div>
                                                                 @if($inst->status !== 'paid')
                                                                     <button
                                                                         type="button"
@@ -192,97 +216,344 @@
             show="openModal"
             title="Record New Loan / Debt"
             subtitle="Register personal or platform debt and generate automatic installment plans"
-            maxWidth="xl">
+            maxWidth="2xl">
 
             <x-slot:icon>
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </x-slot:icon>
 
-            <form action="{{ route('debts.store') }}" method="POST" class="space-y-4" novalidate>
+            <form action="{{ route('debts.store') }}" method="POST" class="space-y-5" novalidate>
                 @csrf
 
-                {{-- Row 1: Direction & Debt Type (Searchable Dropdowns) --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <x-form-select
-                        name="direction"
-                        label="Direction"
-                        :options="$directionOptions"
-                        value="payable"
-                        placeholder="Choose direction..."
-                        searchPlaceholder="Search direction..."
-                        required />
+                {{-- Hidden fallback for backward compatibility --}}
+                <input type="hidden" name="tenor_months" :value="computedTenorMonths">
 
-                    <x-form-select
-                        name="debt_type"
-                        label="Debt Type"
-                        :options="$debtTypeOptions"
-                        value="platform_online"
-                        placeholder="Select debt type..."
-                        searchPlaceholder="Search type..."
-                        required />
+                {{-- 1. Loan Information --}}
+                <div class="space-y-3 pb-4 border-b border-gray-100">
+                    <h4 class="text-xs font-bold text-gray-900">Loan Information</h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <x-form-select
+                            name="direction"
+                            label="Direction"
+                            :options="$directionOptions"
+                            value="payable"
+                            placeholder="Choose direction..."
+                            searchPlaceholder="Search direction..."
+                            required />
+
+                        <x-form-select
+                            name="debt_type"
+                            label="Debt Type"
+                            :options="$debtTypeOptions"
+                            value="platform_online"
+                            placeholder="Select debt type..."
+                            searchPlaceholder="Search type..."
+                            required />
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <x-form-input
+                            name="creditor_name"
+                            label="Lender / Borrower (Creditor Name)"
+                            placeholder="e.g. Bank Mandiri KTA, Kredivo, John Doe"
+                            required />
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Principal Amount <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative rounded-xl shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
+                                    Rp
+                                </div>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    name="principal_amount"
+                                    x-model.number="principal"
+                                    @input="recalculate()"
+                                    placeholder="0"
+                                    required
+                                    class="w-full h-10.5 pl-9 pr-3.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {{-- Row 2: Creditor Name --}}
-                <x-form-input
-                    name="creditor_name"
-                    label="Creditor / Platform Name"
-                    placeholder="e.g. Bank Mandiri KTA, Kredivo, John Doe"
-                    required />
+                {{-- 2. Loan Terms --}}
+                <div class="space-y-3 pb-4 border-b border-gray-100">
+                    <h4 class="text-xs font-bold text-gray-900">Loan Terms</h4>
 
-                {{-- Row 3: Principal Amount & Interest Rate --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <x-form-input
-                        type="number"
-                        step="0.01"
-                        name="principal_amount"
-                        label="Principal Amount"
-                        prefix="Rp"
-                        placeholder="0"
-                        required />
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Tenor Value <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                name="tenor_value"
+                                x-model.number="tenorValue"
+                                @input="onTenorChange()"
+                                required
+                                class="w-full h-10.5 px-3.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                        </div>
 
-                    <x-form-input
-                        type="number"
-                        step="0.01"
-                        name="interest_rate"
-                        label="Annual Interest Rate"
-                        suffix="%"
-                        value="0"
-                        placeholder="0" />
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Tenor Unit <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <select
+                                    name="tenor_unit"
+                                    x-model="tenorUnit"
+                                    @change="onTenorChange()"
+                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                                    <option value="days">Days</option>
+                                    <option value="weeks">Weeks</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Repayment Frequency
+                            </label>
+                            <div class="relative">
+                                <select
+                                    name="repayment_frequency"
+                                    x-model="repaymentFreq"
+                                    @change="recalculate()"
+                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                                    <option value="monthly">Monthly (Bulanan)</option>
+                                    <option value="single">Lump Sum (Pelunasan Sekaligus)</option>
+                                    <option value="weekly">Weekly (Mingguan)</option>
+                                    <option value="daily">Daily (Harian)</option>
+                                    <option value="annually">Annually (Tahunan)</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Start Date <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                name="start_date"
+                                x-model="startDate"
+                                @change="onStartDateChange()"
+                                required
+                                class="w-full h-10.5 px-3.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-semibold text-gray-700">
+                                    Final Due Date <span class="text-red-500">*</span>
+                                </label>
+                                <span class="text-[10px] text-gray-400" x-show="!manualDueDate">Otomatis dihitung</span>
+                                <span class="text-[10px] text-amber-600 font-semibold" x-show="manualDueDate">Manual disesuaikan</span>
+                            </div>
+                            <input
+                                type="date"
+                                name="due_date"
+                                x-model="dueDate"
+                                @input="manualDueDate = true; recalculate()"
+                                required
+                                class="w-full h-10.5 px-3.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                        </div>
+                    </div>
                 </div>
 
-                {{-- Row 4: Tenor, Start Date, Due Date --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <x-form-input
-                        type="number"
-                        name="tenor_months"
-                        label="Tenor (Months)"
-                        suffix="Mo"
-                        value="12"
-                        min="1"
-                        max="120"
-                        required />
+                {{-- 3. Interest Configuration --}}
+                <div class="space-y-3 pb-4 border-b border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-gray-900">Interest Configuration</h4>
+                        <span class="text-[11px] text-gray-400">Optional (default 0%)</span>
+                    </div>
 
-                    <x-form-date
-                        name="start_date"
-                        label="Start Date"
-                        :value="now()->toDateString()"
-                        required />
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Interest Rate</label>
+                            <div class="relative rounded-xl shadow-sm">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    name="interest_rate"
+                                    x-model.number="interestRate"
+                                    @input="recalculate()"
+                                    placeholder="0"
+                                    class="w-full h-10.5 pl-3.5 pr-8 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
+                                    %
+                                </span>
+                            </div>
+                        </div>
 
-                    <x-form-date
-                        name="due_date"
-                        label="Final Due Date"
-                        :value="now()->addYear()->toDateString()"
-                        required />
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Interest Period</label>
+                            <div class="relative">
+                                <select
+                                    name="interest_period"
+                                    x-model="interestPeriod"
+                                    @change="recalculate()"
+                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                                    <option value="daily">Daily (Harian)</option>
+                                    <option value="monthly">Monthly (Bulanan)</option>
+                                    <option value="annual">Annual (Tahunan)</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Interest Method</label>
+                            <div class="relative">
+                                <select
+                                    name="interest_method"
+                                    x-model="interestMethod"
+                                    @change="recalculate()"
+                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                                    <option value="flat">Flat</option>
+                                    <option value="effective">Effective / Annuity</option>
+                                    <option value="compound">Compound</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Info badge when 0% interest --}}
+                    <div x-show="interestRate <= 0" class="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-emerald-800 text-xs">
+                        <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Pinjaman tidak memiliki bunga (0%). Biaya administrasi tetap dapat dikenakan secara independen di bawah ini.</span>
+                    </div>
                 </div>
 
-                {{-- Row 5: Notes --}}
-                <x-form-textarea
-                    name="notes"
-                    label="Notes / Description"
-                    rows="2"
-                    placeholder="Optional notes or repayment agreement details..." />
+                {{-- 4. Additional Fees (Loan Fees) --}}
+                <div class="space-y-3 pb-4 border-b border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-gray-900">Additional Fees</h4>
+                        <span class="text-[11px] text-gray-400">One-time fee</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Administration Fee Type</label>
+                            <div class="relative">
+                                <select
+                                    name="admin_fee_type"
+                                    x-model="adminFeeType"
+                                    @change="recalculate()"
+                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                                    <option value="fixed">Fixed Amount (Nominal Rp)</option>
+                                    <option value="percentage">Percentage (% dari Pokok)</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                                Administration Fee Value
+                                <span class="text-gray-400 font-normal" x-text="adminFeeType === 'percentage' ? '(%)' : '(Rp)'"></span>
+                            </label>
+                            <div class="relative rounded-xl shadow-sm">
+                                <div x-show="adminFeeType === 'fixed'" class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
+                                    Rp
+                                </div>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    name="admin_fee_value"
+                                    x-model.number="adminFeeValue"
+                                    @input="recalculate()"
+                                    placeholder="0"
+                                    :class="adminFeeType === 'fixed' ? 'pl-9 pr-3.5' : 'pl-3.5 pr-8'"
+                                    class="w-full h-10.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
+                                <span x-show="adminFeeType === 'percentage'" class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
+                                    %
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs px-3.5 py-2 bg-purple-50/60 border border-purple-100 rounded-xl text-purple-900">
+                        <span>Nominal Biaya Administrasi (Satu Kali):</span>
+                        <strong class="font-bold text-purple-900" x-text="'Rp ' + formatRupiah(adminFeeAmount)"></strong>
+                    </div>
+                </div>
+
+                {{-- 5. Notes / Description --}}
+                <div class="space-y-1.5 pb-2">
+                    <label class="block text-xs font-semibold text-gray-700">Notes / Agreement Details</label>
+                    <textarea
+                        name="notes"
+                        rows="2"
+                        placeholder="Optional notes or repayment agreement details..."
+                        class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300"></textarea>
+                </div>
+
+                {{-- 6. Live Calculation Preview Card --}}
+                <div class="bg-gray-50 border border-gray-200/80 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <h4 class="text-xs font-bold text-gray-900">Live Calculation Preview</h4>
+                        </div>
+                        <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full" x-text="installmentsCount + 'x Pembayaran (' + (repaymentFreq.charAt(0).toUpperCase() + repaymentFreq.slice(1)) + ')'"></span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="p-3 bg-white rounded-xl border border-gray-100 shadow-2xs">
+                            <span class="text-gray-400 block text-[10px] mb-0.5">Principal Amount</span>
+                            <span class="font-bold text-gray-900" x-text="'Rp ' + formatRupiah(principal)"></span>
+                        </div>
+                        <div class="p-3 bg-white rounded-xl border border-gray-100 shadow-2xs">
+                            <span class="text-gray-400 block text-[10px] mb-0.5">Total Interest</span>
+                            <span class="font-bold text-amber-700" x-text="'Rp ' + formatRupiah(totalInterest)"></span>
+                        </div>
+                        <div class="p-3 bg-white rounded-xl border border-gray-100 shadow-2xs">
+                            <span class="text-gray-400 block text-[10px] mb-0.5">Administration Fee</span>
+                            <span class="font-bold text-purple-700" x-text="'Rp ' + formatRupiah(adminFeeAmount)"></span>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1 p-3 bg-emerald-500 text-white rounded-xl shadow-2xs">
+                            <span class="text-emerald-100 block text-[10px] font-medium mb-0.5">Total Repayment</span>
+                            <span class="font-black text-sm" x-text="'Rp ' + formatRupiah(totalRepayment)"></span>
+                        </div>
+                        <div class="col-span-2 sm:col-span-2 p-3 bg-white rounded-xl border border-gray-100 shadow-2xs flex items-center justify-between">
+                            <div>
+                                <span class="text-gray-400 block text-[10px] mb-0.5">Estimated Payment Amount</span>
+                                <span class="text-xs font-bold text-gray-900" x-text="'Rp ' + formatRupiah(estimatedPayment) + ' / cicilan'"></span>
+                            </div>
+                            <span class="text-[10px] text-gray-400 text-right">Selisih pembulatan masuk ke cicilan terakhir</span>
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Actions --}}
                 <div class="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
@@ -357,4 +628,203 @@
         </x-modal>
 
     </div>
+
+    <script>
+    function debtManager() {
+        return {
+            openModal: @js($errors->any()),
+            payModal: false,
+            selectedInstallment: {},
+            selectedDebtId: null,
+
+            principal: {{ old('principal_amount', 0) }},
+            tenorValue: {{ old('tenor_value', old('tenor_months', 1)) }},
+            tenorUnit: '{{ old('tenor_unit', 'months') }}',
+            startDate: '{{ old('start_date', now()->toDateString()) }}',
+            dueDate: '{{ old('due_date', now()->addMonth()->toDateString()) }}',
+            manualDueDate: false,
+            repaymentFreq: '{{ old('repayment_frequency', 'monthly') }}',
+            interestRate: {{ old('interest_rate', 0) }},
+            interestPeriod: '{{ old('interest_period', 'annual') }}',
+            interestMethod: '{{ old('interest_method', 'flat') }}',
+            adminFeeType: '{{ old('admin_fee_type', 'fixed') }}',
+            adminFeeValue: {{ old('admin_fee_value', old('fee_amount', 0)) }},
+
+            init() {
+                this.updateDueDate();
+            },
+
+            onTenorChange() {
+                // If switching to short days, suggest single repayment frequency if not manually customized
+                if (this.tenorUnit === 'days' && this.tenorValue <= 31 && this.repaymentFreq === 'monthly') {
+                    this.repaymentFreq = 'single';
+                } else if (this.tenorUnit === 'months' && this.repaymentFreq === 'single' && this.tenorValue > 1) {
+                    this.repaymentFreq = 'monthly';
+                }
+                this.updateDueDate();
+            },
+
+            onStartDateChange() {
+                this.updateDueDate();
+            },
+
+            updateDueDate() {
+                if (this.manualDueDate) return;
+                if (!this.startDate) return;
+                const parts = this.startDate.split('-');
+                if (parts.length !== 3) return;
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10) - 1;
+                const d = parseInt(parts[2], 10);
+                const dt = new Date(Date.UTC(y, m, d));
+                const val = parseInt(this.tenorValue, 10) || 1;
+
+                if (this.tenorUnit === 'days') {
+                    dt.setUTCDate(dt.getUTCDate() + val);
+                } else if (this.tenorUnit === 'weeks') {
+                    dt.setUTCDate(dt.getUTCDate() + (val * 7));
+                } else if (this.tenorUnit === 'months') {
+                    dt.setUTCMonth(dt.getUTCMonth() + val);
+                    if (dt.getUTCDate() !== d) {
+                        dt.setUTCDate(0); // Snap to last day of target month (e.g. Feb 28/29)
+                    }
+                } else if (this.tenorUnit === 'years') {
+                    dt.setUTCFullYear(dt.getUTCFullYear() + val);
+                    if (dt.getUTCDate() !== d) {
+                        dt.setUTCDate(0);
+                    }
+                }
+
+                const resY = dt.getUTCFullYear();
+                const resM = String(dt.getUTCMonth() + 1).padStart(2, '0');
+                const resD = String(dt.getUTCDate()).padStart(2, '0');
+                this.dueDate = `${resY}-${resM}-${resD}`;
+            },
+
+            recalculate() {
+                // Alpine reactivity triggers computed getters
+            },
+
+            get computedTenorMonths() {
+                const val = parseInt(this.tenorValue, 10) || 1;
+                if (this.tenorUnit === 'months') return val;
+                if (this.tenorUnit === 'years') return val * 12;
+                if (this.tenorUnit === 'weeks') return Math.max(1, Math.round((val * 7) / 30));
+                return Math.max(1, Math.round(val / 30));
+            },
+
+            get adminFeeAmount() {
+                const p = parseFloat(this.principal) || 0;
+                const feeVal = parseFloat(this.adminFeeValue) || 0;
+                if (feeVal <= 0 || p <= 0) return 0;
+                if (this.adminFeeType === 'percentage') {
+                    return Math.round(p * (feeVal / 100) * 100) / 100;
+                }
+                return Math.round(feeVal * 100) / 100;
+            },
+
+            get durationInPeriod() {
+                const val = parseInt(this.tenorValue, 10) || 1;
+                const unit = this.tenorUnit;
+                const period = this.interestPeriod;
+
+                if (period === 'daily') {
+                    if (unit === 'days') return val;
+                    if (unit === 'weeks') return val * 7;
+                    if (unit === 'years') return val * 365;
+                    return val * 30;
+                }
+                if (period === 'monthly') {
+                    if (unit === 'months') return val;
+                    if (unit === 'years') return val * 12;
+                    if (unit === 'weeks') return (val * 7) / 30;
+                    return val / 30;
+                }
+                // annual
+                if (unit === 'years') return val;
+                if (unit === 'months') return val / 12;
+                if (unit === 'weeks') return (val * 7) / 365;
+                return val / 365;
+            },
+
+            get installmentsCount() {
+                const val = parseInt(this.tenorValue, 10) || 1;
+                const unit = this.tenorUnit;
+                const freq = this.repaymentFreq;
+
+                if (freq === 'single') return 1;
+                if (freq === 'daily') {
+                    if (unit === 'days') return val;
+                    if (unit === 'weeks') return val * 7;
+                    if (unit === 'months') return val * 30;
+                    return val * 365;
+                }
+                if (freq === 'weekly') {
+                    if (unit === 'weeks') return val;
+                    if (unit === 'days') return Math.max(1, Math.ceil(val / 7));
+                    if (unit === 'months') return Math.max(1, Math.round((val * 30) / 7));
+                    return Math.max(1, val * 52);
+                }
+                if (freq === 'annually') {
+                    if (unit === 'years') return val;
+                    return 1;
+                }
+
+                // Monthly default
+                if (unit === 'months') return val;
+                if (unit === 'years') return val * 12;
+                if (unit === 'weeks') return Math.max(1, Math.round((val * 7) / 30));
+                return Math.max(1, Math.round(val / 30));
+            },
+
+            get totalInterest() {
+                const p = parseFloat(this.principal) || 0;
+                const r = parseFloat(this.interestRate) || 0;
+                if (p <= 0 || r <= 0) return 0;
+                const dur = this.durationInPeriod;
+
+                if (this.interestMethod === 'compound') {
+                    const rDec = r / 100;
+                    return Math.round((p * Math.pow(1 + rDec, dur) - p) * 100) / 100;
+                }
+
+                if (this.interestMethod === 'effective') {
+                    const n = this.installmentsCount;
+                    if (n === 1) return Math.round(p * (r / 100) * dur * 100) / 100;
+                    const periodicRate = (r / 100) * (dur / n);
+                    if (periodicRate <= 0) return 0;
+                    const factor = Math.pow(1 + periodicRate, n);
+                    const pmt = p * (periodicRate * factor) / (factor - 1);
+                    let bal = p;
+                    let totI = 0;
+                    for (let k = 1; k <= n; k++) {
+                        const interest = Math.round(bal * periodicRate * 100) / 100;
+                        const principalPaid = (k === n) ? bal : Math.round((pmt - interest) * 100) / 100;
+                        bal = Math.max(0, bal - principalPaid);
+                        totI += interest;
+                    }
+                    return Math.round(totI * 100) / 100;
+                }
+
+                // Flat default
+                return Math.round(p * (r / 100) * dur * 100) / 100;
+            },
+
+            get totalRepayment() {
+                const p = parseFloat(this.principal) || 0;
+                return Math.round((p + this.totalInterest + this.adminFeeAmount) * 100) / 100;
+            },
+
+            get estimatedPayment() {
+                const n = this.installmentsCount;
+                if (n <= 1) return this.totalRepayment;
+                return Math.round((this.totalRepayment / n) * 100) / 100;
+            },
+
+            formatRupiah(num) {
+                return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(num || 0));
+            }
+        };
+    }
+    </script>
 </x-layouts.app>

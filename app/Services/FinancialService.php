@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class FinancialService
 {
+    protected LoanCalculationService $loanCalculationService;
+
+    public function __construct(LoanCalculationService $loanCalculationService)
+    {
+        $this->loanCalculationService = $loanCalculationService;
+    }
     /**
      * Create a new transaction and update corresponding account balances according to financial logic.
      */
@@ -287,34 +293,7 @@ class FinancialService
      */
     public function generateInstallments(Debt $debt): void
     {
-        $tenor = max(1, (int) $debt->tenor_months);
-        $totalAmount = (float) $debt->total_amount;
-        $principalPerMonth = round((float) $debt->principal_amount / $tenor, 2);
-        $totalPerMonth = round($totalAmount / $tenor, 2);
-        $interestPerMonth = max(0, round(($totalAmount - (float) $debt->principal_amount) / $tenor, 2));
-
-        $startDate = \Carbon\Carbon::parse($debt->start_date);
-
-        for ($i = 1; $i <= $tenor; $i++) {
-            $dueDate = $startDate->copy()->addMonths($i);
-
-            // Adjust last month rounding differences
-            $amount = ($i === $tenor) ? ($totalAmount - ($totalPerMonth * ($tenor - 1))) : $totalPerMonth;
-            $principal = ($i === $tenor) ? ((float) $debt->principal_amount - ($principalPerMonth * ($tenor - 1))) : $principalPerMonth;
-            $interest = max(0, $amount - $principal);
-
-            Installment::create([
-                'debt_id'            => $debt->id,
-                'installment_number' => $i,
-                'due_date'           => $dueDate->toDateString(),
-                'amount'             => $amount,
-                'principal_amount'   => $principal,
-                'interest_amount'    => $interest,
-                'fee_amount'         => 0,
-                'paid_amount'        => 0,
-                'status'             => 'unpaid',
-            ]);
-        }
+        $this->loanCalculationService->generateInstallments($debt);
     }
 }
 

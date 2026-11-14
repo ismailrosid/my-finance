@@ -8,6 +8,8 @@ use App\Models\AuditLog;
 use App\Models\Debt;
 use App\Models\Installment;
 use App\Services\FinancialService;
+use App\Services\LoanCalculationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,10 +17,14 @@ use Illuminate\View\View;
 class DebtController extends Controller
 {
     protected FinancialService $financialService;
+    protected LoanCalculationService $loanCalculationService;
 
-    public function __construct(FinancialService $financialService)
-    {
+    public function __construct(
+        FinancialService $financialService,
+        LoanCalculationService $loanCalculationService
+    ) {
         $this->financialService = $financialService;
+        $this->loanCalculationService = $loanCalculationService;
     }
 
     public function index(Request $request): View
@@ -65,40 +71,49 @@ class DebtController extends Controller
         $userId = $this->getUserId();
 
         $validated = $request->validate([
-            'creditor_name'    => 'required|string|max:150',
-            'debt_type'        => 'required|in:platform_online,bank_loan,personal,credit_card,other',
-            'direction'        => 'required|in:payable,receivable',
-            'principal_amount' => 'required|numeric|min:1',
-            'interest_rate'    => 'nullable|numeric|min:0',
-            'fee_amount'       => 'nullable|numeric|min:0',
-            'start_date'       => 'required|date',
-            'due_date'         => 'required|date|after_or_equal:start_date',
-            'tenor_months'     => 'required|integer|min:1|max:120',
-            'notes'            => 'nullable|string',
+            'creditor_name'       => 'required|string|max:150',
+            'debt_type'           => 'required|in:platform_online,bank_loan,personal,credit_card,other',
+            'direction'           => 'required|in:payable,receivable',
+            'principal_amount'    => 'required|numeric|min:1',
+            'tenor_value'         => 'nullable|integer|min:1',
+            'tenor_unit'          => 'nullable|in:days,weeks,months,years',
+            'tenor_months'        => 'nullable|integer|min:1',
+            'repayment_frequency' => 'nullable|in:single,daily,weekly,monthly,annually',
+            'interest_rate'       => 'nullable|numeric|min:0',
+            'interest_period'     => 'nullable|in:daily,monthly,annual',
+            'interest_method'     => 'nullable|in:flat,effective,compound',
+            'admin_fee_type'      => 'nullable|in:fixed,percentage',
+            'admin_fee_value'     => 'nullable|numeric|min:0',
+            'fee_amount'          => 'nullable|numeric|min:0',
+            'start_date'          => 'required|date',
+            'due_date'            => 'required|date|after_or_equal:start_date',
+            'notes'               => 'nullable|string',
         ]);
 
-        $principal = (float) $validated['principal_amount'];
-        $fee = (float) ($validated['fee_amount'] ?? 0);
-        $interestRate = (float) ($validated['interest_rate'] ?? 0);
-        $tenor = (int) $validated['tenor_months'];
-
-        // Simple interest calculation: principal * (rate / 100) * (tenor / 12)
-        $interestAmount = round($principal * ($interestRate / 100) * ($tenor / 12), 2);
-        $totalAmount = $principal + $fee + $interestAmount;
+        // Compute full loan details using LoanCalculationService
+        $calc = $this->loanCalculationService->calculateLoan($validated);
 
         $debt = Debt::create([
             'user_id'             => $userId,
             'creditor_name'       => $validated['creditor_name'],
             'debt_type'           => $validated['debt_type'],
             'direction'           => $validated['direction'],
-            'principal_amount'    => $principal,
-            'interest_rate'       => $interestRate,
-            'fee_amount'          => $fee,
-            'total_amount'        => $totalAmount,
-            'remaining_principal' => $totalAmount,
-            'start_date'          => $validated['start_date'],
-            'due_date'            => $validated['due_date'],
-            'tenor_months'        => $tenor,
+            'principal_amount'    => $calc['principal_amount'],
+            'interest_rate'       => $calc['interest_rate'],
+            'interest_period'     => $calc['interest_period'],
+            'interest_method'     => $calc['interest_method'],
+            'fee_amount'          => $calc['fee_amount'],
+            'admin_fee_type'      => $calc['admin_fee_type'],
+            'admin_fee_value'     => $calc['admin_fee_value'],
+            'interest_amount'     => $calc['interest_amount'],
+            'total_amount'        => $calc['total_amount'],
+            'remaining_principal' => $calc['total_amount'],
+            'start_date'          => $calc['start_date'],
+            'due_date'            => $calc['due_date'],
+            'tenor_value'         => $calc['tenor_value'],
+            'tenor_unit'          => $calc['tenor_unit'],
+            'tenor_months'        => $calc['tenor_months'],
+            'repayment_frequency' => $calc['repayment_frequency'],
             'status'              => 'active',
             'notes'               => $validated['notes'] ?? null,
         ]);
@@ -109,6 +124,15 @@ class DebtController extends Controller
         AuditLog::record($userId, 'CREATE', 'debts', $debt->id, null, $debt->toArray());
 
         return redirect()->route('debts.index')->with('success', 'Debt recorded and installments schedule created.');
+    }
+
+    /**
+     * Live calculation preview API for asynchronous preview requests.
+     */
+    public function calculatePreview(Request $request): JsonResponse
+    {
+        $calc = $this->loanCalculationService->calculateLoan($request->all());
+        return response()->json($calc);
     }
 
     public function show(int $id): View

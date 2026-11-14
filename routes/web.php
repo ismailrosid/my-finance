@@ -75,6 +75,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',                            [DebtController::class, 'index'])->name('index');
         Route::get('/create',                      [DebtController::class, 'create'])->name('create');
         Route::post('/',                           [DebtController::class, 'store'])->name('store');
+        Route::post('/calculate',                  [DebtController::class, 'calculatePreview'])->name('calculate');
         Route::get('/{id}',                        [DebtController::class, 'show'])->name('show');
         Route::get('/{id}/edit',                   [DebtController::class, 'edit'])->name('edit');
         Route::put('/{id}',                        [DebtController::class, 'update'])->name('update');
