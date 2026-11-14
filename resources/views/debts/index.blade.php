@@ -13,6 +13,38 @@
             'other'           => __('debts.type_other'),
         ];
 
+        $tenorUnitOptions = [
+            'days'   => __('debts.unit_days'),
+            'weeks'  => __('debts.unit_weeks'),
+            'months' => __('debts.unit_months'),
+            'years'  => __('debts.unit_years'),
+        ];
+
+        $repaymentFrequencyOptions = [
+            'monthly'  => __('debts.frequency_monthly'),
+            'single'   => __('debts.frequency_lump_sum'),
+            'weekly'   => __('debts.frequency_weekly'),
+            'daily'    => __('debts.period_daily'),
+            'annually' => __('debts.period_annual'),
+        ];
+
+        $interestPeriodOptions = [
+            'annual'  => __('debts.period_annual'),
+            'monthly' => __('debts.period_monthly'),
+            'daily'   => __('debts.period_daily'),
+        ];
+
+        $interestMethodOptions = [
+            'flat'      => __('debts.method_flat'),
+            'effective' => __('debts.method_effective'),
+            'compound'  => __('debts.method_compound'),
+        ];
+
+        $adminFeeTypeOptions = [
+            'fixed'      => __('debts.fixed_amount') . ' (Rp)',
+            'percentage' => __('debts.percentage') . ' (%)',
+        ];
+
         $accountOptions = [];
         foreach ($accounts as $acc) {
             $accountOptions[$acc->id] = [
@@ -323,47 +355,23 @@
                                 class="w-full h-10.5 px-3.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                {{ __('debts.tenor_unit') }} <span class="text-red-500">*</span>
-                            </label>
-                            <div class="relative">
-                                <select
-                                    name="tenor_unit"
-                                    x-model="tenorUnit"
-                                    @change="onTenorChange()"
-                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="days">{{ __('debts.unit_days') }}</option>
-                                    <option value="weeks">{{ __('debts.unit_weeks') }}</option>
-                                    <option value="months">{{ __('debts.unit_months') }}</option>
-                                    <option value="years">{{ __('debts.unit_years') }}</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
+                        <div @change="tenorUnit = $event.detail || tenorUnit; onTenorChange()">
+                            <x-form-select
+                                name="tenor_unit"
+                                :label="__('debts.tenor_unit')"
+                                :options="$tenorUnitOptions"
+                                :value="old('tenor_unit', 'months')"
+                                :searchable="false"
+                                required />
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                {{ __('debts.repayment_frequency') }}
-                            </label>
-                            <div class="relative">
-                                <select
-                                    name="repayment_frequency"
-                                    x-model="repaymentFreq"
-                                    @change="recalculate()"
-                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="monthly">{{ __('debts.frequency_monthly') }}</option>
-                                    <option value="single">{{ __('debts.frequency_lump_sum') }}</option>
-                                    <option value="weekly">{{ __('debts.frequency_weekly') }}</option>
-                                    <option value="daily">{{ __('debts.period_daily') }}</option>
-                                    <option value="annually">{{ __('debts.period_annual') }}</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
+                        <div @change="repaymentFreq = $event.detail || repaymentFreq; recalculate()">
+                            <x-form-select
+                                name="repayment_frequency"
+                                :label="__('debts.repayment_frequency')"
+                                :options="$repaymentFrequencyOptions"
+                                :value="old('repayment_frequency', 'monthly')"
+                                :searchable="false" />
                         </div>
                     </div>
 
@@ -424,40 +432,22 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.interest_period') }}</label>
-                            <div class="relative">
-                                <select
-                                    name="interest_period"
-                                    x-model="interestPeriod"
-                                    @change="recalculate()"
-                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="daily">{{ __('debts.period_daily') }}</option>
-                                    <option value="monthly">{{ __('debts.period_monthly') }}</option>
-                                    <option value="annual">{{ __('debts.period_annual') }}</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
+                        <div @change="interestPeriod = $event.detail || interestPeriod; recalculate()">
+                            <x-form-select
+                                name="interest_period"
+                                :label="__('debts.interest_period')"
+                                :options="$interestPeriodOptions"
+                                :value="old('interest_period', 'annual')"
+                                :searchable="false" />
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.interest_method') }}</label>
-                            <div class="relative">
-                                <select
-                                    name="interest_method"
-                                    x-model="interestMethod"
-                                    @change="recalculate()"
-                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="flat">{{ __('debts.method_flat') }}</option>
-                                    <option value="effective">{{ __('debts.method_effective') }}</option>
-                                    <option value="compound">{{ __('debts.method_compound') }}</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
+                        <div @change="interestMethod = $event.detail || interestMethod; recalculate()">
+                            <x-form-select
+                                name="interest_method"
+                                :label="__('debts.interest_method')"
+                                :options="$interestMethodOptions"
+                                :value="old('interest_method', 'flat')"
+                                :searchable="false" />
                         </div>
                     </div>
                 </div>
@@ -470,21 +460,13 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.fee_type') }}</label>
-                            <div class="relative">
-                                <select
-                                    name="admin_fee_type"
-                                    x-model="adminFeeType"
-                                    @change="recalculate()"
-                                    class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="fixed">{{ __('debts.fixed_amount') }} (Rp)</option>
-                                    <option value="percentage">{{ __('debts.percentage') }} (%)</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
+                        <div @change="adminFeeType = $event.detail || adminFeeType; recalculate()">
+                            <x-form-select
+                                name="admin_fee_type"
+                                :label="__('debts.fee_type')"
+                                :options="$adminFeeTypeOptions"
+                                :value="old('admin_fee_type', 'fixed')"
+                                :searchable="false" />
                         </div>
 
                         <div>
@@ -665,11 +647,6 @@
             },
 
             onTenorChange() {
-                if (this.tenorUnit === 'days' && this.tenorValue <= 31 && this.repaymentFreq === 'monthly') {
-                    this.repaymentFreq = 'single';
-                } else if (this.tenorUnit === 'months' && this.repaymentFreq === 'single' && this.tenorValue > 1) {
-                    this.repaymentFreq = 'monthly';
-                }
                 this.updateDueDate();
             },
 
