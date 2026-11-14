@@ -56,6 +56,50 @@
         }
     </script>
 
+    <!-- Centralized Localization and Helpers for Alpine.js & Frontend -->
+    <script>
+        window.__locale = @js(app()->getLocale());
+        window.__translations = {
+            common: @js(trans('common')),
+            debts: @js(trans('debts')),
+            transactions: @js(trans('transactions')),
+            accounts: @js(trans('accounts')),
+            budgets: @js(trans('budgets')),
+            reports: @js(trans('reports')),
+            settings: @js(trans('settings')),
+            auth: @js(trans('auth')),
+        };
+        window.__ = function(key, replace = {}) {
+            if (!key) return '';
+            const parts = key.split('.');
+            let res = window.__translations;
+            for (const part of parts) {
+                if (res && typeof res === 'object' && part in res) {
+                    res = res[part];
+                } else {
+                    return key;
+                }
+            }
+            if (typeof res !== 'string') return key;
+            for (const [placeholder, val] of Object.entries(replace)) {
+                res = res.replace(new RegExp(':' + placeholder, 'g'), val);
+            }
+            return res;
+        };
+        window.formatNumber = function(value, decimals = 0) {
+            if (value === null || value === undefined || isNaN(value)) return '0';
+            const num = parseFloat(value);
+            if (window.__locale === 'id') {
+                return num.toLocaleString('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            }
+            return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        };
+        window.formatCurrency = function(value, prefix = 'Rp', decimals = 0) {
+            const formatted = window.formatNumber(value, decimals);
+            return prefix ? (prefix + ' ' + formatted) : formatted;
+        };
+    </script>
+
     <!-- Styles & Scripts -->
     @if (file_exists(public_path('build/manifest.json')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])

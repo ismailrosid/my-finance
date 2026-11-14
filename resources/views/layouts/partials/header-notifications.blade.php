@@ -65,11 +65,11 @@
         {{-- Panel Header --}}
         <div class="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between gap-2 bg-white">
             <div class="flex items-center gap-2 min-w-0">
-                <h3 class="text-sm font-bold text-gray-900 tracking-tight shrink-0">Notifications</h3>
+                <h3 class="text-sm font-bold text-gray-900 tracking-tight shrink-0">{{ __('common.notifications') }}</h3>
                 <span
                     x-show="unreadCount > 0"
                     class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-100 shrink-0"
-                    x-text="`${unreadCount} unread`">
+                    x-text="`${unreadCount} {{ __('common.unread') }}`">
                 </span>
             </div>
 
@@ -86,7 +86,7 @@
                             <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     </template>
-                    <span x-text="isMarkingAll ? 'Marking...' : 'Mark all read'"></span>
+                    <span x-text="isMarkingAll ? '{{ __('common.marking') }}' : '{{ __('common.mark_all_read') }}'"></span>
                 </button>
 
                 {{-- Close button on Mobile --}}
@@ -136,7 +136,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <p class="text-xs text-gray-400">Checking notifications...</p>
+                <p class="text-xs text-gray-400">{{ __('common.checking_notifications') }}</p>
             </div>
 
             {{-- Empty State --}}
@@ -146,8 +146,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                     </svg>
                 </div>
-                <p class="text-xs font-semibold text-gray-700">No notifications</p>
-                <p class="text-[11px] text-gray-400 mt-0.5">You're all caught up!</p>
+                <p class="text-xs font-semibold text-gray-700">{{ __('common.no_notifications') }}</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">{{ __('common.caught_up') }}</p>
             </div>
 
             {{-- List Items --}}

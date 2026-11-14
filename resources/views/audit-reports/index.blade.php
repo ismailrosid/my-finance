@@ -1,13 +1,13 @@
-<x-layouts.app title="Audit Reports">
+<x-layouts.app :title="__('audit.title')">
 
     <div x-data="{ diffModal: false, activeLog: null }">
 
         <x-page-header
-            title="Audit Reports"
-            subtitle="Generate and download batch audit reports for financial movements, account balances, and security logs with field-by-field diff tracking."
+            :title="__('audit.title')"
+            :subtitle="__('audit.subtitle')"
             :breadcrumbs="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Audit Reports', 'url' => route('audit-reports.index')],
+                ['label' => __('common.dashboard'), 'url' => route('dashboard')],
+                ['label' => __('audit.title'), 'url' => route('audit-reports.index')],
             ]">
         </x-page-header>
 

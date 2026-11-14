@@ -31,7 +31,7 @@
                 </svg>
             </div>
             <input type="search"
-                   placeholder="Search..."
+                   placeholder="{{ __('common.search') }}..."
                    class="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
         </div>
     </div>
@@ -44,14 +44,68 @@
             <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="text-xs font-medium text-gray-600">{{ now()->format('M Y') }}</span>
+            <span class="text-xs font-medium text-gray-600">{{ \App\Support\FormatHelper::date(now(), 'M Y') }}</span>
+        </div>
+
+        {{-- Language Selector Dropdown --}}
+        <div class="relative" x-data="{ langOpen: false }" @click.outside="langOpen = false">
+            <button
+                type="button"
+                @click="langOpen = !langOpen"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors border border-gray-200 cursor-pointer"
+                title="{{ __('common.switch_language') }}"
+                aria-label="{{ __('common.switch_language') }}">
+                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                </svg>
+                <span class="font-semibold uppercase tracking-wider text-[11px]">{{ app()->getLocale() }}</span>
+                <svg class="w-3 h-3 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': langOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <div
+                x-show="langOpen"
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                class="absolute right-0 mt-2 w-44 bg-white rounded-xl border border-gray-100 shadow-xl shadow-gray-900/10 py-1 z-50 overflow-hidden"
+                style="display: none;"
+                x-cloak>
+                <form method="POST" action="{{ route('locale.switch') }}">
+                    @csrf
+                    <button
+                        type="submit"
+                        name="locale"
+                        value="en"
+                        class="w-full flex items-center justify-between px-3.5 py-2 text-xs text-left transition hover:bg-gray-50 cursor-pointer {{ app()->getLocale() === 'en' ? 'font-bold text-emerald-700 bg-emerald-50/50' : 'text-gray-700' }}">
+                        <span>English</span>
+                        @if(app()->getLocale() === 'en')
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        @endif
+                    </button>
+                    <button
+                        type="submit"
+                        name="locale"
+                        value="id"
+                        class="w-full flex items-center justify-between px-3.5 py-2 text-xs text-left transition hover:bg-gray-50 cursor-pointer {{ app()->getLocale() === 'id' ? 'font-bold text-emerald-700 bg-emerald-50/50' : 'text-gray-700' }}">
+                        <span>Bahasa Indonesia</span>
+                        @if(app()->getLocale() === 'id')
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        @endif
+                    </button>
+                </form>
+            </div>
         </div>
 
         {{-- Privacy Mode (Blur Balances) Toggle Button --}}
         <button
             type="button"
             @click="$store.privacy?.toggle()"
-            :title="$store.privacy?.active ? 'Disable Privacy Mode (Show Balances)' : 'Enable Privacy Mode (Blur Balances)'"
+            :title="$store.privacy?.active ? '{{ __('common.privacy_mode') }}' : '{{ __('common.privacy_mode') }}'"
             aria-label="Toggle Privacy Mode"
             class="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-gray-200"
             :class="{ 'bg-emerald-50 text-emerald-700 border-emerald-200': $store.privacy?.active }">
@@ -115,10 +169,10 @@
                         <button
                             type="button"
                             @click="$confirm({
-                                title: 'Sign out from MyFinance?',
-                                description: 'Are you sure you want to sign out of your account? You will need to sign in again to access your financial data.',
-                                confirmText: 'Sign Out',
-                                cancelText: 'Cancel',
+                                title: @js(__('auth.sign_out_confirm_title')),
+                                description: @js(__('auth.sign_out_confirm_desc')),
+                                confirmText: @js(__('auth.sign_out')),
+                                cancelText: @js(__('common.cancel')),
                                 variant: 'primary',
                                 icon: 'logout',
                                 form: $el.closest('form')
@@ -127,7 +181,7 @@
                             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                             </svg>
-                            Sign Out
+                            {{ __('auth.sign_out') }}
                         </button>
                     </form>
                     @endif

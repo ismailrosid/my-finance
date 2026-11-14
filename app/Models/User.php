@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'phone_number',
         'avatar_url',
+        'locale',
         'is_active',
     ];
 
@@ -141,5 +142,10 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute($value): string
     {
         return $value ?: asset('images/default-avatar.png');
+    }
+
+    public function getLocale(): string
+    {
+        return in_array($this->locale, ['en', 'id']) ? $this->locale : 'en';
     }
 }

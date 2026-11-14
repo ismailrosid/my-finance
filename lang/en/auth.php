@@ -1,0 +1,38 @@
+<?php
+
+return [
+    'failed' => 'These credentials do not match our records.',
+    'password' => 'The provided password is incorrect.',
+    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+
+    // Auth Views
+    'sign_in' => 'Sign In',
+    'sign_in_title' => 'Welcome to MyFinance',
+    'sign_in_subtitle' => 'Personal Finance & Cashflow Management System',
+    'sign_in_to_account' => 'Sign In to Your Account',
+    'sign_up' => 'Sign Up',
+    'sign_up_title' => 'Create your Account',
+    'sign_up_subtitle' => 'Start taking control of your financial freedom today',
+    'email_address' => 'Email Address',
+    'password_label' => 'Password',
+    'confirm_password' => 'Confirm Password',
+    'full_name' => 'Full Name',
+    'phone_number' => 'Phone Number',
+    'remember_me' => 'Remember Me',
+    'forgot_password' => 'Forgot password?',
+    'forgot_password_title' => 'Forgot Password?',
+    'forgot_password_subtitle' => 'Enter your registered email address and we will send you a password reset link.',
+    'send_reset_link' => 'Send Password Reset Link',
+    'reset_password' => 'Reset Password',
+    'reset_password_title' => 'Set New Password',
+    'reset_password_subtitle' => 'Please enter your new password to regain access.',
+    'back_to_login' => 'Back to Sign In',
+    'dont_have_account' => "Don't have an account?",
+    'already_have_account' => 'Already have an account?',
+    'agree_terms' => 'I agree to the Terms of Service and Privacy Policy',
+    'demo_accounts' => 'Demo Credentials',
+    'quick_fill' => 'Click to quick fill',
+    'sign_out' => 'Sign Out',
+    'sign_out_confirm_title' => 'Sign out from MyFinance?',
+    'sign_out_confirm_desc' => 'Are you sure you want to sign out of your account? You will need to sign in again to access your financial data.',
+];

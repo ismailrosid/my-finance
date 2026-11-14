@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Accounts',
+    'subtitle' => 'Manage your bank accounts, digital wallets, cash, and investments.',
+    'add_account' => 'Add Account',
+    'edit_account' => 'Edit Account',
+    'account_name' => 'Account Name',
+    'account_type' => 'Account Type',
+    'account_number' => 'Account Number',
+    'initial_balance' => 'Initial Balance',
+    'current_balance' => 'Current Balance',
+    'balance' => 'Balance',
+    'total_balance' => 'Total Balance',
+    'net_worth' => 'Net Worth',
+    'description' => 'Description',
+    'no_accounts' => 'No accounts found.',
+    'type_bank' => 'Bank Account',
+    'type_ewallet' => 'E-Wallet',
+    'type_cash' => 'Cash',
+    'type_credit_card' => 'Credit Card',
+    'type_investment' => 'Investment',
+    'type_other' => 'Other',
+    'created_success' => 'Account created successfully.',
+    'updated_success' => 'Account updated successfully.',
+    'deleted_success' => 'Account deleted successfully.',
+    'cannot_delete_has_transactions' => 'Cannot delete account because it contains associated transactions.',
+];

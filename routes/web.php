@@ -12,6 +12,7 @@ use App\Http\Controllers\Web\SettingController;
 use App\Http\Controllers\Web\RoleManagementController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\AuditReportController;
+use App\Http\Controllers\Web\LocaleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +22,10 @@ use App\Http\Controllers\Web\AuditReportController;
 
 // Redirect root to dashboard
 Route::get('/', fn () => redirect()->route('dashboard'));
+
+// Language Switcher (Public for guests & authenticated users)
+Route::post('/locale', [LocaleController::class, 'switch'])->name('locale.switch');
+Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.set');
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -106,6 +111,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',           [SettingController::class, 'index'])->name('index');
         Route::put('/profile',    [SettingController::class, 'updateProfile'])->name('update-profile');
         Route::put('/password',   [SettingController::class, 'updatePassword'])->name('update-password');
+        Route::put('/locale',     [LocaleController::class, 'switch'])->name('update-locale');
         Route::get('/categories', [SettingController::class, 'categories'])->name('categories');
         Route::post('/categories', [SettingController::class, 'storeCategory'])->name('store-category');
         Route::put('/categories/{id}', [SettingController::class, 'updateCategory'])->name('update-category');

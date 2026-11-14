@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'title' => 'Rekening',
+    'subtitle' => 'Kelola rekening bank, dompet digital, uang tunai, dan investasi Anda.',
+    'add_account' => 'Tambah Rekening',
+    'edit_account' => 'Ubah Rekening',
+    'account_name' => 'Nama Rekening',
+    'account_type' => 'Tipe Rekening',
+    'account_number' => 'Nomor Rekening',
+    'initial_balance' => 'Saldo Awal',
+    'current_balance' => 'Saldo Saat Ini',
+    'balance' => 'Saldo',
+    'total_balance' => 'Total Saldo',
+    'net_worth' => 'Kekayaan Bersih',
+    'description' => 'Deskripsi',
+    'no_accounts' => 'Tidak ada rekening ditemukan.',
+    'type_bank' => 'Rekening Bank',
+    'type_ewallet' => 'Dompet Digital',
+    'type_cash' => 'Uang Tunai',
+    'type_credit_card' => 'Kartu Kredit',
+    'type_investment' => 'Investasi',
+    'type_other' => 'Lainnya',
+    'created_success' => 'Rekening berhasil dibuat.',
+    'updated_success' => 'Rekening berhasil diperbarui.',
+    'deleted_success' => 'Rekening berhasil dihapus.',
+    'cannot_delete_has_transactions' => 'Tidak dapat menghapus rekening karena memiliki riwayat transaksi terkait.',
+];

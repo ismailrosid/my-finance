@@ -28,8 +28,8 @@
                  x-transition:enter-start="opacity-0 -translate-x-2"
                  x-transition:enter-end="opacity-100 translate-x-0"
                  :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">
-                <span class="text-sm font-bold text-gray-900 whitespace-nowrap">MyFinance</span>
-                <span class="block text-xs text-gray-400 whitespace-nowrap leading-none">Personal Finance</span>
+                <span class="text-sm font-bold text-gray-900 whitespace-nowrap">{{ __('common.app_name') }}</span>
+                <span class="block text-xs text-gray-400 whitespace-nowrap leading-none">{{ __('common.tagline') }}</span>
             </div>
         </a>
 
@@ -76,19 +76,19 @@
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
-                Overview
+                {{ __('common.overview') }}
             </p>
             <ul class="space-y-0.5">
                 <li>
                     <a href="{{ route('dashboard') }}"
                        @click="if (isMobile) mobileOpen = false"
                        class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                       x-tooltip.left="(!isExpanded && !isMobile) ? 'Dashboard' : false">
+                       x-tooltip.left="(!isExpanded && !isMobile) ? '{{ __('common.dashboard') }}' : false">
                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Dashboard</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.dashboard') }}</span>
                     </a>
                 </li>
             </ul>
@@ -108,7 +108,7 @@
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
-                Financial Management
+                {{ __('common.financial_management') }}
             </p>
             <ul class="space-y-0.5">
                 @if(auth()->user()->hasPermission('transactions'))
@@ -120,7 +120,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Transactions</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.transactions') }}</span>
                     </a>
                 </li>
                 @endif
@@ -133,7 +133,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Accounts</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.accounts') }}</span>
                     </a>
                 </li>
                 @endif
@@ -146,7 +146,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Debts & Installments</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.debts') }}</span>
                     </a>
                 </li>
                 @endif
@@ -159,7 +159,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Budgets</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.budgets') }}</span>
                     </a>
                 </li>
                 @endif
@@ -172,7 +172,7 @@
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
-                Analytics
+                {{ __('common.analytics') }}
             </p>
             <ul class="space-y-0.5">
                 <li>
@@ -183,7 +183,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Financial Reports</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.reports') }}</span>
                     </a>
                 </li>
             </ul>
@@ -195,7 +195,7 @@
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
-                Preferences
+                {{ __('common.preferences') }}
             </p>
             <ul class="space-y-0.5">
                 <li>
@@ -207,7 +207,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Settings</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.settings') }}</span>
                     </a>
                 </li>
             </ul>
@@ -225,7 +225,7 @@
         <div>
             <p class="sidebar-section-label transition-all duration-300 overflow-hidden"
                :class="isExpanded ? 'opacity-100 h-auto mb-1' : 'opacity-0 h-0 mb-0'">
-                Administration
+                {{ __('common.administration') }}
             </p>
             <ul class="space-y-0.5">
                 @if(auth()->user()->hasPermission('roles'))
@@ -237,7 +237,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Roles & Access</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.roles') }}</span>
                     </a>
                 </li>
                 @endif
@@ -250,7 +250,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                         </svg>
                         <span class="whitespace-nowrap transition-all duration-300 overflow-hidden"
-                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">Audit Reports</span>
+                              :class="isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'">{{ __('common.audit_reports') }}</span>
                     </a>
                 </li>
                 @endif

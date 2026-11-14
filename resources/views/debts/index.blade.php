@@ -1,16 +1,16 @@
-<x-layouts.app title="Debts & Installments">
+<x-layouts.app :title="__('debts.title')">
     @php
         $directionOptions = [
-            'payable'    => 'I Owe (Payable / Debt)',
-            'receivable' => 'Someone Owes Me (Receivable)',
+            'payable'    => __('debts.i_owe'),
+            'receivable' => __('debts.owed_to_me'),
         ];
 
         $debtTypeOptions = [
-            'platform_online' => 'Platform / Pinjaman Online (Pinjol)',
-            'bank_loan'       => 'Bank Loan / KPR / Kredit',
-            'personal'        => 'Personal / Friends & Family',
-            'credit_card'     => 'Credit Card Installment',
-            'other'           => 'Other Liabilities',
+            'platform_online' => __('debts.type_online_platform'),
+            'bank_loan'       => __('debts.type_bank'),
+            'personal'        => __('debts.type_personal'),
+            'credit_card'     => __('debts.type_credit_card'),
+            'other'           => __('debts.type_other'),
         ];
 
         $accountOptions = [];
@@ -26,18 +26,18 @@
     <div x-data="debtManager()">
 
         <x-page-header
-            title="Debts & Installments"
-            subtitle="Track your loans, debts, and installment payment schedules."
+            :title="__('debts.title')"
+            :subtitle="__('debts.subtitle')"
             :breadcrumbs="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Debts', 'url' => route('debts.index')],
+                ['label' => __('common.dashboard'), 'url' => route('dashboard')],
+                ['label' => __('debts.title'), 'url' => route('debts.index')],
             ]">
             <x-slot:actions>
                 <x-button variant="primary" size="sm" @click="openModal = true">
                     <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Record New Loan / Debt
+                    {{ __('debts.record_new') }}
                 </x-button>
             </x-slot:actions>
         </x-page-header>
@@ -45,21 +45,21 @@
         {{-- Summary Cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <x-summary-card
-                label="Total Outstanding Debt (Payable)"
-                :value="number_format($totalPayable ?? 0, 0, ',', '.')"
+                :label="__('debts.total_payable')"
+                :value="\App\Support\FormatHelper::number($totalPayable ?? 0)"
                 prefix="Rp"
                 iconBg="bg-red-100"
                 iconColor="text-red-600"/>
 
             <x-summary-card
-                label="Total Receivables (Owed to You)"
-                :value="number_format($totalReceivable ?? 0, 0, ',', '.')"
+                :label="__('debts.total_receivable')"
+                :value="\App\Support\FormatHelper::number($totalReceivable ?? 0)"
                 prefix="Rp"
                 iconBg="bg-emerald-100"
                 iconColor="text-emerald-600"/>
 
             <x-summary-card
-                label="Active Loans / Debts"
+                :label="__('debts.title')"
                 :value="$activeDebtsCount ?? 0"
                 iconBg="bg-blue-100"
                 iconColor="text-blue-600"/>
@@ -71,8 +71,8 @@
             <div class="lg:col-span-2 space-y-4">
                 <div class="card">
                     <div class="card-header flex items-center justify-between">
-                        <h2 class="text-sm font-semibold text-gray-900">Your Debts & Loans</h2>
-                        <span class="text-xs text-gray-400">{{ count($debts) }} record(s)</span>
+                        <h2 class="text-sm font-semibold text-gray-900">{{ __('debts.title') }}</h2>
+                        <span class="text-xs text-gray-400">{{ count($debts) }} {{ strtolower(__('debts.title')) }}</span>
                     </div>
 
                     <div class="card-body p-0">
@@ -85,39 +85,39 @@
                                                 <div class="flex items-center gap-2">
                                                     <h3 class="text-sm font-semibold text-gray-900">{{ $debt->creditor_name }}</h3>
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold {{ $debt->direction === 'payable' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700' }}">
-                                                        {{ ucfirst($debt->direction) }}
+                                                        {{ $debt->direction === 'payable' ? __('debts.payable') : __('debts.receivable') }}
                                                     </span>
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
-                                                        {{ str_replace('_', ' ', ucfirst($debt->debt_type)) }}
+                                                        {{ $debtTypeOptions[$debt->debt_type] ?? str_replace('_', ' ', ucfirst($debt->debt_type)) }}
                                                     </span>
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700">
                                                         {{ $debt->repayment_frequency_label }}
                                                     </span>
                                                 </div>
                                                 <p class="text-xs text-gray-500 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                                    <span>Due: <strong class="text-gray-700">{{ $debt->due_date->format('d M Y') }}</strong></span>
+                                                    <span>{{ __('debts.due_date') }}: <strong class="text-gray-700">{{ \App\Support\FormatHelper::date($debt->due_date) }}</strong></span>
                                                     <span>&bull;</span>
-                                                    <span>Tenor: <strong class="text-gray-700">{{ $debt->formatted_tenor }}</strong></span>
+                                                    <span>{{ __('debts.tenor') }}: <strong class="text-gray-700">{{ $debt->formatted_tenor }}</strong></span>
                                                     <span>&bull;</span>
-                                                    <span>Interest: <strong class="text-gray-700">{{ $debt->formatted_interest }}</strong></span>
+                                                    <span>{{ __('debts.interest_rate') }}: <strong class="text-gray-700">{{ $debt->formatted_interest }}</strong></span>
                                                     @if((float) $debt->fee_amount > 0)
                                                         <span>&bull;</span>
-                                                        <span>Admin Fee: <strong class="text-purple-700">{{ $debt->formatted_admin_fee }}</strong></span>
+                                                        <span>{{ __('debts.admin_fee') }}: <strong class="text-purple-700">{{ $debt->formatted_admin_fee }}</strong></span>
                                                     @endif
                                                 </p>
                                             </div>
 
                                             <div class="text-right">
-                                                <p class="text-xs text-gray-400">Remaining</p>
-                                                <p class="text-base font-bold text-gray-900"><span class="privacy-blur">{{ $debt->formatted_remaining }}</span></p>
-                                                <p class="text-[11px] text-gray-400">Total: <span class="privacy-blur">Rp {{ number_format($debt->total_amount, 0, ',', '.') }}</span></p>
+                                                <p class="text-xs text-gray-400">{{ __('debts.outstanding_balance') }}</p>
+                                                <p class="text-base font-bold text-gray-900"><span class="privacy-blur">{{ \App\Support\FormatHelper::currency($debt->remaining_amount) }}</span></p>
+                                                <p class="text-[11px] text-gray-400">{{ __('debts.total_repayment') }}: <span class="privacy-blur">{{ \App\Support\FormatHelper::currency($debt->total_amount) }}</span></p>
                                             </div>
                                         </div>
 
                                         {{-- Progress Bar --}}
                                         <div class="mt-3">
                                             <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1">
-                                                <span>Repayment Progress</span>
+                                                <span>{{ __('budgets.progress') }}</span>
                                                 <span>{{ $debt->progress_percentage }}%</span>
                                             </div>
                                             <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -128,31 +128,31 @@
                                         {{-- Installments Table Accordion / Preview --}}
                                         @if($debt->installments->isNotEmpty())
                                             <div class="mt-4 pt-3 border-t border-gray-100">
-                                                <p class="text-xs font-semibold text-gray-700 mb-2">Installment Schedule ({{ $debt->installments->count() }} termin)</p>
+                                                <p class="text-xs font-semibold text-gray-700 mb-2">{{ __('debts.installment_schedule') }} ({{ $debt->installments->count() }} termin)</p>
                                                 <div class="space-y-1.5">
                                                     @foreach($debt->installments as $inst)
                                                         <div class="flex items-center justify-between text-xs py-2 px-3 rounded-lg bg-gray-50 hover:bg-gray-100/70 transition">
                                                             <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                                                                 <span class="font-semibold text-gray-800 w-7 sm:w-8 shrink-0">#{{ $inst->installment_number }}</span>
-                                                                <span class="text-gray-500 w-20 sm:w-[84px] shrink-0 whitespace-nowrap">{{ $inst->due_date->format('d M Y') }}</span>
+                                                                <span class="text-gray-500 w-20 sm:w-[84px] shrink-0 whitespace-nowrap">{{ \App\Support\FormatHelper::date($inst->due_date) }}</span>
                                                                 @if($inst->status === 'paid')
-                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-700 font-semibold shrink-0">Paid</span>
+                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-700 font-semibold shrink-0">{{ __('common.paid') }}</span>
                                                                 @elseif($inst->isOverdue())
-                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 font-semibold shrink-0">Overdue</span>
+                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 font-semibold shrink-0">{{ __('common.overdue') }}</span>
                                                                 @else
-                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 font-semibold shrink-0">Unpaid</span>
+                                                                    <span class="w-14 text-center px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 font-semibold shrink-0">{{ __('common.unpaid') }}</span>
                                                                 @endif
                                                             </div>
                                                             <div class="flex items-center gap-3">
                                                                 <div class="text-right">
-                                                                    <span class="font-bold text-gray-900 privacy-blur block">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
+                                                                    <span class="font-bold text-gray-900 privacy-blur block">{{ \App\Support\FormatHelper::currency($inst->amount) }}</span>
                                                                     <span class="text-[10px] text-gray-400 block">
-                                                                        Pokok: Rp {{ number_format($inst->principal_amount, 0, ',', '.') }}
+                                                                        {{ __('debts.principal_amount') }}: {{ \App\Support\FormatHelper::currency($inst->principal_amount) }}
                                                                         @if((float) $inst->interest_amount > 0)
-                                                                            &bull; Bunga: Rp {{ number_format($inst->interest_amount, 0, ',', '.') }}
+                                                                            &bull; {{ __('debts.total_interest') }}: {{ \App\Support\FormatHelper::currency($inst->interest_amount) }}
                                                                         @endif
                                                                         @if((float) $inst->fee_amount > 0)
-                                                                            &bull; Admin: Rp {{ number_format($inst->fee_amount, 0, ',', '.') }}
+                                                                            &bull; {{ __('debts.admin_fee') }}: {{ \App\Support\FormatHelper::currency($inst->fee_amount) }}
                                                                         @endif
                                                                     </span>
                                                                 </div>
@@ -161,7 +161,7 @@
                                                                         type="button"
                                                                         @click="selectedDebtId = {{ $debt->id }}; selectedInstallment = {{ json_encode($inst) }}; payModal = true"
                                                                         class="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition cursor-pointer">
-                                                                        Pay
+                                                                        {{ __('debts.pay_installment') }}
                                                                     </button>
                                                                 @endif
                                                             </div>
@@ -175,8 +175,8 @@
                             </div>
                         @else
                             <x-empty-state
-                                title="No debts recorded"
-                                description="Record your loans and installments to track repayment schedules.">
+                                :title="__('debts.no_debts')"
+                                :description="__('debts.subtitle')">
                             </x-empty-state>
                         @endif
                     </div>
@@ -187,7 +187,7 @@
             <div class="space-y-4">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="text-sm font-semibold text-gray-900">Next Upcoming Due Dates</h2>
+                        <h2 class="text-sm font-semibold text-gray-900">{{ __('dashboard.upcoming_debts') }}</h2>
                     </div>
                     <div class="card-body">
                         @if(isset($upcomingInstallments) && $upcomingInstallments->isNotEmpty())
@@ -196,14 +196,14 @@
                                     <div class="p-3.5 rounded-xl border border-gray-100 bg-gray-50/60">
                                         <div class="flex items-center justify-between">
                                             <p class="text-xs font-semibold text-gray-900">{{ $inst->debt?->creditor_name }}</p>
-                                            <span class="text-xs font-bold text-red-600 privacy-blur">Rp {{ number_format($inst->amount, 0, ',', '.') }}</span>
+                                            <span class="text-xs font-bold text-red-600 privacy-blur">{{ \App\Support\FormatHelper::currency($inst->amount) }}</span>
                                         </div>
-                                        <p class="text-[11px] text-gray-400 mt-1">Due: {{ $inst->due_date->format('d M Y') }} &bull; Installment #{{ $inst->installment_number }}</p>
+                                        <p class="text-[11px] text-gray-400 mt-1">{{ __('debts.due_date') }}: {{ \App\Support\FormatHelper::date($inst->due_date) }} &bull; {{ __('debts.installment') }} #{{ $inst->installment_number }}</p>
                                     </div>
                                 @endforeach
                             </div>
                         @else
-                            <p class="text-xs text-gray-400 py-4 text-center">No pending upcoming installments.</p>
+                            <p class="text-xs text-gray-400 py-4 text-center">{{ __('dashboard.no_upcoming_debts') }}</p>
                         @endif
                     </div>
                 </div>
@@ -214,8 +214,8 @@
         {{-- Modal: Record New Loan / Debt --}}
         <x-modal
             show="openModal"
-            title="Record New Loan / Debt"
-            subtitle="Register personal or platform debt and generate automatic installment plans"
+            :title="__('debts.record_new')"
+            :subtitle="__('debts.subtitle')"
             maxWidth="2xl">
 
             <x-slot:icon>
@@ -232,38 +232,38 @@
 
                 {{-- 1. Loan Information --}}
                 <div class="space-y-3 pb-4 border-b border-gray-100">
-                    <h4 class="text-xs font-bold text-gray-900">Loan Information</h4>
+                    <h4 class="text-xs font-bold text-gray-900">{{ __('debts.loan_information') }}</h4>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-form-select
                             name="direction"
-                            label="Direction"
+                            :label="__('debts.direction')"
                             :options="$directionOptions"
                             value="payable"
-                            placeholder="Choose direction..."
-                            searchPlaceholder="Search direction..."
+                            :placeholder="__('common.select_option')"
+                            :searchPlaceholder="__('common.search')"
                             required />
 
                         <x-form-select
                             name="debt_type"
-                            label="Debt Type"
+                            :label="__('debts.debt_type')"
                             :options="$debtTypeOptions"
                             value="platform_online"
-                            placeholder="Select debt type..."
-                            searchPlaceholder="Search type..."
+                            :placeholder="__('common.select_option')"
+                            :searchPlaceholder="__('common.search')"
                             required />
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-form-input
                             name="creditor_name"
-                            label="Lender / Borrower (Creditor Name)"
-                            placeholder="e.g. Bank Mandiri KTA, Kredivo, John Doe"
+                            :label="__('debts.lender_borrower')"
+                            placeholder="e.g. Bank Mandiri, Kredivo, John Doe"
                             required />
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                Principal Amount <span class="text-red-500">*</span>
+                                {{ __('debts.principal_amount') }} <span class="text-red-500">*</span>
                             </label>
                             <div class="relative rounded-xl shadow-sm">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
@@ -285,12 +285,12 @@
 
                 {{-- 2. Loan Terms --}}
                 <div class="space-y-3 pb-4 border-b border-gray-100">
-                    <h4 class="text-xs font-bold text-gray-900">Loan Terms</h4>
+                    <h4 class="text-xs font-bold text-gray-900">{{ __('debts.loan_terms') }}</h4>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                Tenor Value <span class="text-red-500">*</span>
+                                {{ __('debts.tenor_value') }} <span class="text-red-500">*</span>
                             </label>
                             <input
                                 type="number"
@@ -304,7 +304,7 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                Tenor Unit <span class="text-red-500">*</span>
+                                {{ __('debts.tenor_unit') }} <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <select
@@ -312,10 +312,10 @@
                                     x-model="tenorUnit"
                                     @change="onTenorChange()"
                                     class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="days">Days</option>
-                                    <option value="weeks">Weeks</option>
-                                    <option value="months">Months</option>
-                                    <option value="years">Years</option>
+                                    <option value="days">{{ __('debts.unit_days') }}</option>
+                                    <option value="weeks">{{ __('debts.unit_weeks') }}</option>
+                                    <option value="months">{{ __('debts.unit_months') }}</option>
+                                    <option value="years">{{ __('debts.unit_years') }}</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -325,7 +325,7 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                Repayment Frequency
+                                {{ __('debts.repayment_frequency') }}
                             </label>
                             <div class="relative">
                                 <select
@@ -333,11 +333,11 @@
                                     x-model="repaymentFreq"
                                     @change="recalculate()"
                                     class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="monthly">Monthly (Bulanan)</option>
-                                    <option value="single">Lump Sum (Pelunasan Sekaligus)</option>
-                                    <option value="weekly">Weekly (Mingguan)</option>
-                                    <option value="daily">Daily (Harian)</option>
-                                    <option value="annually">Annually (Tahunan)</option>
+                                    <option value="monthly">{{ __('debts.frequency_monthly') }}</option>
+                                    <option value="single">{{ __('debts.frequency_lump_sum') }}</option>
+                                    <option value="weekly">{{ __('debts.frequency_weekly') }}</option>
+                                    <option value="daily">{{ __('debts.period_daily') }}</option>
+                                    <option value="annually">{{ __('debts.period_annual') }}</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -349,7 +349,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                Start Date <span class="text-red-500">*</span>
+                                {{ __('debts.start_date') }} <span class="text-red-500">*</span>
                             </label>
                             <input
                                 type="date"
@@ -363,10 +363,8 @@
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
                                 <label class="block text-xs font-semibold text-gray-700">
-                                    Final Due Date <span class="text-red-500">*</span>
+                                    {{ __('debts.final_due_date') }} <span class="text-red-500">*</span>
                                 </label>
-                                <span class="text-[10px] text-gray-400" x-show="!manualDueDate">Otomatis dihitung</span>
-                                <span class="text-[10px] text-amber-600 font-semibold" x-show="manualDueDate">Manual disesuaikan</span>
                             </div>
                             <input
                                 type="date"
@@ -382,13 +380,13 @@
                 {{-- 3. Interest Configuration --}}
                 <div class="space-y-3 pb-4 border-b border-gray-100">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-bold text-gray-900">Interest Configuration</h4>
-                        <span class="text-[11px] text-gray-400">Optional (default 0%)</span>
+                        <h4 class="text-xs font-bold text-gray-900">{{ __('debts.interest_configuration') }}</h4>
+                        <span class="text-[11px] text-gray-400">0% = {{ __('common.no') }}</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Interest Rate</label>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.interest_rate') }}</label>
                             <div class="relative rounded-xl shadow-sm">
                                 <input
                                     type="number"
@@ -406,16 +404,16 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Interest Period</label>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.interest_period') }}</label>
                             <div class="relative">
                                 <select
                                     name="interest_period"
                                     x-model="interestPeriod"
                                     @change="recalculate()"
                                     class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="daily">Daily (Harian)</option>
-                                    <option value="monthly">Monthly (Bulanan)</option>
-                                    <option value="annual">Annual (Tahunan)</option>
+                                    <option value="daily">{{ __('debts.period_daily') }}</option>
+                                    <option value="monthly">{{ __('debts.period_monthly') }}</option>
+                                    <option value="annual">{{ __('debts.period_annual') }}</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -424,16 +422,16 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Interest Method</label>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.interest_method') }}</label>
                             <div class="relative">
                                 <select
                                     name="interest_method"
                                     x-model="interestMethod"
                                     @change="recalculate()"
                                     class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="flat">Flat</option>
-                                    <option value="effective">Effective / Annuity</option>
-                                    <option value="compound">Compound</option>
+                                    <option value="flat">{{ __('debts.method_flat') }}</option>
+                                    <option value="effective">{{ __('debts.method_effective') }}</option>
+                                    <option value="compound">{{ __('debts.method_compound') }}</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -441,34 +439,26 @@
                             </div>
                         </div>
                     </div>
-
-                    {{-- Info badge when 0% interest --}}
-                    <div x-show="interestRate <= 0" class="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-emerald-800 text-xs">
-                        <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Pinjaman tidak memiliki bunga (0%). Biaya administrasi tetap dapat dikenakan secara independen di bawah ini.</span>
-                    </div>
                 </div>
 
                 {{-- 4. Additional Fees (Loan Fees) --}}
                 <div class="space-y-3 pb-4 border-b border-gray-100">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-bold text-gray-900">Additional Fees</h4>
+                        <h4 class="text-xs font-bold text-gray-900">{{ __('debts.additional_fees') }}</h4>
                         <span class="text-[11px] text-gray-400">One-time fee</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Administration Fee Type</label>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.fee_type') }}</label>
                             <div class="relative">
                                 <select
                                     name="admin_fee_type"
                                     x-model="adminFeeType"
                                     @change="recalculate()"
                                     class="w-full h-10.5 pl-3.5 pr-9 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-150 shadow-sm appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300">
-                                    <option value="fixed">Fixed Amount (Nominal Rp)</option>
-                                    <option value="percentage">Percentage (% dari Pokok)</option>
+                                    <option value="fixed">{{ __('debts.fixed_amount') }} (Rp)</option>
+                                    <option value="percentage">{{ __('debts.percentage') }} (%)</option>
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -478,7 +468,7 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                                Administration Fee Value
+                                {{ __('debts.fee_value') }}
                                 <span class="text-gray-400 font-normal" x-text="adminFeeType === 'percentage' ? '(%)' : '(Rp)'"></span>
                             </label>
                             <div class="relative rounded-xl shadow-sm">
@@ -503,18 +493,18 @@
                     </div>
 
                     <div class="flex items-center justify-between text-xs px-3.5 py-2 bg-purple-50/60 border border-purple-100 rounded-xl text-purple-900">
-                        <span>Nominal Biaya Administrasi (Satu Kali):</span>
+                        <span>{{ __('debts.administration_fee') }}:</span>
                         <strong class="font-bold text-purple-900" x-text="'Rp ' + formatRupiah(adminFeeAmount)"></strong>
                     </div>
                 </div>
 
                 {{-- 5. Notes / Description --}}
                 <div class="space-y-1.5 pb-2">
-                    <label class="block text-xs font-semibold text-gray-700">Notes / Agreement Details</label>
+                    <label class="block text-xs font-semibold text-gray-700">{{ __('debts.notes_description') }}</label>
                     <textarea
                         name="notes"
                         rows="2"
-                        placeholder="Optional notes or repayment agreement details..."
+                        placeholder="..."
                         class="w-full px-3.5 py-2.5 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-150 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 hover:border-gray-300"></textarea>
                 </div>
 
@@ -523,34 +513,33 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <h4 class="text-xs font-bold text-gray-900">Live Calculation Preview</h4>
+                            <h4 class="text-xs font-bold text-gray-900">{{ __('debts.live_calculation_preview') }}</h4>
                         </div>
-                        <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full" x-text="installmentsCount + 'x Pembayaran (' + (repaymentFreq.charAt(0).toUpperCase() + repaymentFreq.slice(1)) + ')'"></span>
+                        <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full" x-text="installmentsCount + 'x termin'"></span>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                         <div class="p-3 bg-white rounded-xl border border-gray-100 shadow-2xs">
-                            <span class="text-gray-400 block text-[10px] mb-0.5">Principal Amount</span>
+                            <span class="text-gray-400 block text-[10px] mb-0.5">{{ __('debts.principal_amount') }}</span>
                             <span class="font-bold text-gray-900" x-text="'Rp ' + formatRupiah(principal)"></span>
                         </div>
                         <div class="p-3 bg-white rounded-xl border border-gray-100 shadow-2xs">
-                            <span class="text-gray-400 block text-[10px] mb-0.5">Total Interest</span>
+                            <span class="text-gray-400 block text-[10px] mb-0.5">{{ __('debts.total_interest') }}</span>
                             <span class="font-bold text-amber-700" x-text="'Rp ' + formatRupiah(totalInterest)"></span>
                         </div>
                         <div class="p-3 bg-white rounded-xl border border-gray-100 shadow-2xs">
-                            <span class="text-gray-400 block text-[10px] mb-0.5">Administration Fee</span>
+                            <span class="text-gray-400 block text-[10px] mb-0.5">{{ __('debts.administration_fee') }}</span>
                             <span class="font-bold text-purple-700" x-text="'Rp ' + formatRupiah(adminFeeAmount)"></span>
                         </div>
                         <div class="col-span-2 sm:col-span-1 p-3 bg-emerald-500 text-white rounded-xl shadow-2xs">
-                            <span class="text-emerald-100 block text-[10px] font-medium mb-0.5">Total Repayment</span>
+                            <span class="text-emerald-100 block text-[10px] font-medium mb-0.5">{{ __('debts.total_repayment') }}</span>
                             <span class="font-black text-sm" x-text="'Rp ' + formatRupiah(totalRepayment)"></span>
                         </div>
                         <div class="col-span-2 sm:col-span-2 p-3 bg-white rounded-xl border border-gray-100 shadow-2xs flex items-center justify-between">
                             <div>
-                                <span class="text-gray-400 block text-[10px] mb-0.5">Estimated Payment Amount</span>
-                                <span class="text-xs font-bold text-gray-900" x-text="'Rp ' + formatRupiah(estimatedPayment) + ' / cicilan'"></span>
+                                <span class="text-gray-400 block text-[10px] mb-0.5">{{ __('debts.estimated_payment_amount') }}</span>
+                                <span class="text-xs font-bold text-gray-900" x-text="'Rp ' + formatRupiah(estimatedPayment)"></span>
                             </div>
-                            <span class="text-[10px] text-gray-400 text-right">Selisih pembulatan masuk ke cicilan terakhir</span>
                         </div>
                     </div>
                 </div>
@@ -558,13 +547,13 @@
                 {{-- Actions --}}
                 <div class="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
                     <x-button type="button" variant="secondary" size="md" class="w-full sm:w-auto" @click="openModal = false">
-                        Cancel
+                        {{ __('common.cancel') }}
                     </x-button>
                     <x-button type="submit" variant="primary" size="md" class="w-full sm:w-auto">
                         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Save & Generate Schedule
+                        {{ __('common.save') }}
                     </x-button>
                 </div>
             </form>
@@ -573,8 +562,8 @@
         {{-- Modal: Pay Installment --}}
         <x-modal
             show="payModal"
-            title="Pay Installment"
-            subtitle="Settle debt installment and deduct balance from account"
+            :title="__('debts.pay_installment')"
+            :subtitle="__('debts.pay_from_account')"
             maxWidth="md">
 
             <x-slot:icon>
@@ -588,14 +577,14 @@
 
                 <x-form-select
                     name="account_id"
-                    label="Pay From Account"
+                    :label="__('debts.pay_from_account')"
                     :options="$accountOptions"
-                    placeholder="Select payment source..."
-                    searchPlaceholder="Search account..."
+                    :placeholder="__('common.select_option')"
+                    :searchPlaceholder="__('common.search')"
                     required />
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">Amount to Pay *</label>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('debts.payment_amount') }} *</label>
                     <div class="relative rounded-xl shadow-sm">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
                             Rp
@@ -613,15 +602,15 @@
 
                 <x-form-input
                     name="notes"
-                    label="Payment Notes"
-                    placeholder="e.g. Paid via BCA Mobile Transfer..." />
+                    :label="__('debts.notes')"
+                    placeholder="..." />
 
                 <div class="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
                     <x-button type="button" variant="secondary" size="md" class="w-full sm:w-auto" @click="payModal = false">
-                        Cancel
+                        {{ __('common.cancel') }}
                     </x-button>
                     <x-button type="submit" variant="primary" size="md" class="w-full sm:w-auto">
-                        Confirm Payment
+                        {{ __('debts.pay_installment') }}
                     </x-button>
                 </div>
             </form>
@@ -655,7 +644,6 @@
             },
 
             onTenorChange() {
-                // If switching to short days, suggest single repayment frequency if not manually customized
                 if (this.tenorUnit === 'days' && this.tenorValue <= 31 && this.repaymentFreq === 'monthly') {
                     this.repaymentFreq = 'single';
                 } else if (this.tenorUnit === 'months' && this.repaymentFreq === 'single' && this.tenorValue > 1) {
@@ -686,7 +674,7 @@
                 } else if (this.tenorUnit === 'months') {
                     dt.setUTCMonth(dt.getUTCMonth() + val);
                     if (dt.getUTCDate() !== d) {
-                        dt.setUTCDate(0); // Snap to last day of target month (e.g. Feb 28/29)
+                        dt.setUTCDate(0);
                     }
                 } else if (this.tenorUnit === 'years') {
                     dt.setUTCFullYear(dt.getUTCFullYear() + val);
@@ -702,7 +690,6 @@
             },
 
             recalculate() {
-                // Alpine reactivity triggers computed getters
             },
 
             get computedTenorMonths() {
@@ -740,7 +727,6 @@
                     if (unit === 'weeks') return (val * 7) / 30;
                     return val / 30;
                 }
-                // annual
                 if (unit === 'years') return val;
                 if (unit === 'months') return val / 12;
                 if (unit === 'weeks') return (val * 7) / 365;
@@ -770,7 +756,6 @@
                     return 1;
                 }
 
-                // Monthly default
                 if (unit === 'months') return val;
                 if (unit === 'years') return val * 12;
                 if (unit === 'weeks') return Math.max(1, Math.round((val * 7) / 30));
@@ -806,7 +791,6 @@
                     return Math.round(totI * 100) / 100;
                 }
 
-                // Flat default
                 return Math.round(p * (r / 100) * dur * 100) / 100;
             },
 
@@ -822,6 +806,9 @@
             },
 
             formatRupiah(num) {
+                if (typeof window.formatNumber === 'function') {
+                    return window.formatNumber(Math.round(num || 0), 0);
+                }
                 return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(num || 0));
             }
         };

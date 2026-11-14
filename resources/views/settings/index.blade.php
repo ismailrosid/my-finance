@@ -1,8 +1,8 @@
-<x-layouts.app title="Settings">
+<x-layouts.app :title="__('settings.title')">
     @php
         $catTypeOptions = [
-            'expense' => 'Expense (Pengeluaran)',
-            'income'  => 'Income (Pemasukan)',
+            'expense' => __('transactions.expense'),
+            'income'  => __('transactions.income'),
         ];
 
         $catErrors = $errors->hasAny(['category_name', 'category_type', 'color', 'icon']);
@@ -38,11 +38,11 @@
     }">
 
         <x-page-header
-            title="Settings"
-            subtitle="Manage your profile, preferences, and custom financial categories."
+            :title="__('settings.title')"
+            :subtitle="__('settings.subtitle')"
             :breadcrumbs="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Settings', 'url' => route('settings.index')],
+                ['label' => __('common.dashboard'), 'url' => route('dashboard')],
+                ['label' => __('settings.title'), 'url' => route('settings.index')],
             ]">
         </x-page-header>
 
@@ -53,56 +53,107 @@
                     @click="setTab('profile')"
                     :class="activeTab === 'profile' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition cursor-pointer">
-                    Profile Settings
+                    {{ __('settings.profile_settings') }}
                 </button>
                 <button
                     @click="setTab('categories')"
                     :class="activeTab === 'categories' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition cursor-pointer">
-                    Categories
+                    {{ __('settings.categories') }}
                 </button>
                 <button
                     @click="setTab('security')"
                     :class="activeTab === 'security' ? 'border-emerald-600 text-emerald-600 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition cursor-pointer">
-                    Security & Password
+                    {!! __('settings.security_password') !!}
                 </button>
             </nav>
         </div>
 
-        {{-- Tab 1: Profile --}}
-        <div x-show="activeTab === 'profile'" @if($initialTab !== 'profile') x-cloak @endif class="max-w-2xl">
+        {{-- Tab 1: Profile & Preferences --}}
+        <div x-show="activeTab === 'profile'" @if($initialTab !== 'profile') x-cloak @endif class="max-w-2xl space-y-6">
+            {{-- Personal Information --}}
             <div class="card p-6">
-                <h3 class="text-base font-semibold text-gray-900 mb-4">Personal Information</h3>
+                <h3 class="text-base font-semibold text-gray-900 mb-4">{{ __('settings.personal_information') }}</h3>
                 <form action="{{ route('settings.update-profile') }}" method="POST" class="space-y-4" novalidate>
                     @csrf
                     @method('PUT')
 
                     <x-form-input
                         name="name"
-                        label="Full Name"
+                        :label="__('settings.full_name')"
                         :value="old('name', $user?->name)"
                         required />
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('settings.email_address') }}</label>
                         <input
                             type="email"
                             value="{{ $user?->email }}"
                             disabled
                             class="w-full h-10.5 px-3.5 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed shadow-sm">
-                        <p class="mt-1 text-[11px] text-gray-400">Email address cannot be changed.</p>
+                        <p class="mt-1 text-[11px] text-gray-400">{{ __('settings.email_cannot_change') }}</p>
                     </div>
 
                     <x-form-input
                         name="phone_number"
-                        label="Phone Number"
+                        :label="__('settings.phone_number')"
                         :value="old('phone_number', $user?->phone_number)"
-                        placeholder="e.g. 08123456789" />
+                        :placeholder="__('settings.phone_placeholder')" />
 
                     <div class="pt-4 border-t border-gray-100 flex justify-end">
                         <x-button type="submit" variant="primary" size="md">
-                            Save Changes
+                            {{ __('common.save') }}
+                        </x-button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- Language Preference Card --}}
+            <div class="card p-6">
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('settings.language_preference') }}</h3>
+                    <p class="text-xs text-gray-500 mt-1">{{ __('settings.language_description') }}</p>
+                </div>
+
+                <form action="{{ route('settings.update-locale') }}" method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        {{-- English Option --}}
+                        <label class="relative flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition {{ app()->getLocale() === 'en' ? 'border-emerald-600 bg-emerald-50/40 ring-1 ring-emerald-600' : 'border-gray-200 hover:bg-gray-50' }}">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="locale" value="en" class="text-emerald-600 focus:ring-emerald-500" {{ app()->getLocale() === 'en' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-900">{{ __('common.language_en') }}</p>
+                                    <p class="text-[11px] text-gray-400">English (US)</p>
+                                </div>
+                            </div>
+                            @if(app()->getLocale() === 'en')
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">{{ __('common.active') }}</span>
+                            @endif
+                        </label>
+
+                        {{-- Indonesian Option --}}
+                        <label class="relative flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition {{ app()->getLocale() === 'id' ? 'border-emerald-600 bg-emerald-50/40 ring-1 ring-emerald-600' : 'border-gray-200 hover:bg-gray-50' }}">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="locale" value="id" class="text-emerald-600 focus:ring-emerald-500" {{ app()->getLocale() === 'id' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-900">{{ __('common.language_id') }}</p>
+                                    <p class="text-[11px] text-gray-400">Bahasa Indonesia</p>
+                                </div>
+                            </div>
+                            @if(app()->getLocale() === 'id')
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">{{ __('common.active') }}</span>
+                            @endif
+                        </label>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between">
+                        <span class="text-xs text-gray-500">{{ __('settings.current_language') }}: <strong class="text-gray-800 font-semibold">{{ app()->getLocale() === 'id' ? __('common.language_id') : __('common.language_en') }}</strong></span>
+                        <x-button type="submit" variant="primary" size="sm">
+                            {{ __('common.save') }}
                         </x-button>
                     </div>
                 </form>
@@ -113,14 +164,14 @@
         <div x-show="activeTab === 'categories'" @if($initialTab !== 'categories') x-cloak @endif class="space-y-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-semibold text-gray-900">Financial Categories</h3>
-                    <p class="text-xs text-gray-400">Default system categories and your custom categories</p>
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('settings.financial_categories') }}</h3>
+                    <p class="text-xs text-gray-400">{{ __('settings.categories_subtitle') }}</p>
                 </div>
                 <x-button type="button" variant="primary" size="sm" @click="openCatModal = true">
                     <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    New Category
+                    {{ __('settings.new_category') }}
                 </x-button>
             </div>
 
@@ -128,10 +179,10 @@
                 <table class="w-full text-left text-xs">
                     <thead class="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-semibold">
                         <tr>
-                            <th class="px-5 py-3">Category Name</th>
-                            <th class="px-5 py-3">Type</th>
-                            <th class="px-5 py-3">Scope</th>
-                            <th class="px-5 py-3 text-right">Action</th>
+                            <th class="px-5 py-3">{{ __('settings.category_name') }}</th>
+                            <th class="px-5 py-3">{{ __('settings.category_type') }}</th>
+                            <th class="px-5 py-3">{{ __('settings.category_scope') }}</th>
+                            <th class="px-5 py-3 text-right">{{ __('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -143,14 +194,14 @@
                                 </td>
                                 <td class="px-5 py-3.5">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold {{ $cat->category_type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">
-                                        {{ ucfirst($cat->category_type) }}
+                                        {{ $cat->category_type === 'income' ? __('transactions.income') : __('transactions.expense') }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-500">
                                     @if($cat->is_system)
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-gray-100 text-gray-600 font-medium">System</span>
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-gray-100 text-gray-600 font-medium">{{ __('settings.system_scope') }}</span>
                                     @else
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 font-medium">Custom</span>
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 font-medium">{{ __('settings.custom_scope') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 text-right">
@@ -161,15 +212,15 @@
                                             <button
                                                 type="button"
                                                 @click="$confirm({
-                                                    title: 'Delete this category?',
-                                                    description: 'Are you sure you want to delete this custom category? Existing transactions using this category will remain unchanged.',
-                                                    confirmText: 'Delete Category',
-                                                    cancelText: 'Cancel',
+                                                    title: @js(__('common.confirm_delete_title')),
+                                                    description: @js(__('settings.delete_category_confirm')),
+                                                    confirmText: @js(__('common.delete')),
+                                                    cancelText: @js(__('common.cancel')),
                                                     variant: 'danger',
                                                     form: $el.closest('form')
                                                 })"
                                                 class="text-red-500 hover:text-red-700 text-xs font-semibold cursor-pointer">
-                                                Delete
+                                                {{ __('common.delete') }}
                                             </button>
                                         </form>
                                     @else
@@ -185,8 +236,8 @@
             {{-- Modal: Create Custom Category --}}
             <x-modal
                 show="openCatModal"
-                title="Create Custom Category"
-                subtitle="Add an income or expense category tailored to your needs"
+                :title="__('settings.create_custom_category')"
+                :subtitle="__('settings.create_category_subtitle')"
                 maxWidth="md">
 
                 <x-slot:icon>
@@ -201,42 +252,42 @@
 
                     <x-form-input
                         name="category_name"
-                        label="Category Name"
+                        :label="__('settings.category_name')"
                         placeholder="e.g. Side Hustle, Crypto Staking, Pet Care"
                         required />
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-form-select
                             name="category_type"
-                            label="Type"
+                            :label="__('settings.category_type')"
                             :options="$catTypeOptions"
                             value="expense"
-                            placeholder="Select category type..."
-                            searchPlaceholder="Search type..."
+                            placeholder="{{ __('common.select_option') }}..."
+                            searchPlaceholder="{{ __('common.search') }}..."
                             required />
 
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Color Badge</label>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ __('settings.color_badge') }}</label>
                             <div class="flex items-center gap-2">
                                 <input
                                     type="color"
                                     name="color"
                                     value="#10B981"
                                     class="h-10.5 w-14 p-1 rounded-xl border border-gray-200 cursor-pointer shadow-sm">
-                                <span class="text-xs text-gray-400">Tag accent</span>
+                                <span class="text-xs text-gray-400">{{ __('settings.tag_accent') }}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
                         <x-button type="button" variant="secondary" size="md" class="w-full sm:w-auto" @click="openCatModal = false">
-                            Cancel
+                            {{ __('common.cancel') }}
                         </x-button>
                         <x-button type="submit" variant="primary" size="md" class="w-full sm:w-auto">
                             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                             </svg>
-                            Save Category
+                            {{ __('settings.save_category') }}
                         </x-button>
                     </div>
                 </form>
@@ -246,7 +297,7 @@
         {{-- Tab 3: Security --}}
         <div x-show="activeTab === 'security'" @if($initialTab !== 'security') x-cloak @endif class="max-w-2xl">
             <div class="card p-6">
-                <h3 class="text-base font-semibold text-gray-900 mb-4">Change Password</h3>
+                <h3 class="text-base font-semibold text-gray-900 mb-4">{{ __('settings.change_password') }}</h3>
                 <form action="{{ route('settings.update-password') }}" method="POST" class="space-y-4" novalidate>
                     @csrf
                     @method('PUT')
@@ -254,27 +305,27 @@
                     <x-form-input
                         type="password"
                         name="current_password"
-                        label="Current Password"
-                        placeholder="Enter current password"
+                        :label="__('settings.current_password')"
+                        placeholder="••••••••"
                         required />
 
                     <x-form-input
                         type="password"
                         name="password"
-                        label="New Password"
-                        placeholder="Enter new strong password"
+                        :label="__('settings.new_password')"
+                        placeholder="••••••••"
                         required />
 
                     <x-form-input
                         type="password"
                         name="password_confirmation"
-                        label="Confirm New Password"
-                        placeholder="Repeat new password"
+                        :label="__('settings.confirm_new_password')"
+                        placeholder="••••••••"
                         required />
 
                     <div class="pt-4 border-t border-gray-100 flex justify-end">
                         <x-button type="submit" variant="primary" size="md">
-                            Update Password
+                            {{ __('settings.update_password') }}
                         </x-button>
                     </div>
                 </form>

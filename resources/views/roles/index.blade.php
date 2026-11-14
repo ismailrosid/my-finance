@@ -1,4 +1,4 @@
-<x-layouts.app title="Roles & Access Control">
+<x-layouts.app :title="__('roles.title')">
     @php
         $roleOptions = [];
         foreach ($roles as $r) {
@@ -13,11 +13,11 @@
     <div x-data="{ openRoleModal: false, assignModal: false, targetUser: {} }">
 
         <x-page-header
-            title="Roles & Access Control"
-            subtitle="Manage Role-Based Access Control (RBAC), permissions matrix, and user assignments."
+            :title="__('roles.title')"
+            :subtitle="__('roles.subtitle')"
             :breadcrumbs="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Roles & Access', 'url' => route('roles.index')],
+                ['label' => __('common.dashboard'), 'url' => route('dashboard')],
+                ['label' => __('roles.title'), 'url' => route('roles.index')],
             ]">
             <x-slot:actions>
                 <x-button variant="primary" size="sm" @click="openRoleModal = true">

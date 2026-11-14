@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Reset Password &mdash; MyFinance</title>
+    <title>{{ __('auth.reset_password_title') }} &mdash; {{ __('common.app_name') }}</title>
 
     <!-- Fonts: Google Fonts (Primary) & Bunny Fonts (Fallback) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +35,46 @@
 </head>
 <body class="h-full antialiased text-gray-800 font-sans flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 via-gray-100 to-emerald-50/30">
 
+    {{-- Floating Language Switcher --}}
+    <div class="fixed top-4 right-4 z-50">
+        <div class="relative" x-data="{ langOpen: false }" @click.outside="langOpen = false">
+            <button
+                type="button"
+                @click="langOpen = !langOpen"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-xl text-xs font-semibold text-gray-700 shadow-sm border border-gray-200 hover:bg-white cursor-pointer">
+                <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                </svg>
+                <span class="uppercase tracking-wide">{{ app()->getLocale() }}</span>
+                <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div
+                x-show="langOpen"
+                x-transition
+                class="absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-100 py-1 overflow-hidden"
+                style="display: none;"
+                x-cloak>
+                <form method="POST" action="{{ route('locale.switch') }}">
+                    @csrf
+                    <button type="submit" name="locale" value="en" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-gray-50 cursor-pointer {{ app()->getLocale() === 'en' ? 'font-bold text-emerald-600 bg-emerald-50/50' : 'text-gray-700' }}">
+                        <span>English</span>
+                        @if(app()->getLocale() === 'en')
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        @endif
+                    </button>
+                    <button type="submit" name="locale" value="id" class="w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-gray-50 cursor-pointer {{ app()->getLocale() === 'id' ? 'font-bold text-emerald-600 bg-emerald-50/50' : 'text-gray-700' }}">
+                        <span>Bahasa Indonesia</span>
+                        @if(app()->getLocale() === 'id')
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        @endif
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="w-full max-w-md space-y-6" x-data="{
         showPassword: false,
         showConfirm: false,
@@ -47,8 +87,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900">Set New Password</h1>
-            <p class="text-xs text-gray-500 mt-1">Create a strong new password for your account</p>
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">{{ __('auth.reset_password_title') }}</h1>
+            <p class="text-xs text-gray-500 mt-1">{{ __('auth.reset_password_subtitle') }}</p>
         </div>
 
         {{-- General Errors --}}
@@ -72,7 +112,7 @@
                 {{-- Email Address --}}
                 <div data-form-component="true">
                     <label for="email" class="block text-xs font-semibold text-gray-700 mb-1.5">
-                        Email Address <span class="text-red-500">*</span>
+                        {{ __('auth.email_address') }} <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -99,7 +139,7 @@
                 {{-- New Password --}}
                 <div data-form-component="true">
                     <label for="password" class="block text-xs font-semibold text-gray-700 mb-1.5">
-                        New Password <span class="text-red-500">*</span>
+                        {{ __('auth.password_label') }} <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -114,7 +154,7 @@
                             autocomplete="new-password"
                             required
                             data-required="true"
-                            placeholder="Minimum 8 characters"
+                            placeholder="••••••••"
                             class="form-input pl-10 pr-10 text-xs w-full py-2.5 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 {{ $errors->has('password') ? 'border-red-400 ring-4 ring-red-500/10' : '' }}">
                         <button
                             type="button"
@@ -134,10 +174,10 @@
                     @enderror
                 </div>
 
-                {{-- Confirm New Password --}}
+                {{-- Confirm Password --}}
                 <div data-form-component="true">
                     <label for="password_confirmation" class="block text-xs font-semibold text-gray-700 mb-1.5">
-                        Confirm New Password <span class="text-red-500">*</span>
+                        {{ __('auth.confirm_password') }} <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -152,7 +192,7 @@
                             autocomplete="new-password"
                             required
                             data-required="true"
-                            placeholder="Repeat new password"
+                            placeholder="••••••••"
                             class="form-input pl-10 pr-10 text-xs w-full py-2.5 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500">
                         <button
                             type="button"
@@ -173,9 +213,9 @@
                 <button
                     type="submit"
                     class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-md shadow-emerald-500/20 transition-all cursor-pointer">
-                    <span>Update Password</span>
+                    <span>{{ __('auth.reset_password') }}</span>
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
                     </svg>
                 </button>
             </form>
@@ -186,17 +226,16 @@
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
                     </svg>
-                    <span>Back to Sign In</span>
+                    <span>{{ __('auth.back_to_login') }}</span>
                 </a>
             </div>
         </div>
 
         {{-- Footer note --}}
         <p class="text-center text-xs text-gray-400">
-            &copy; {{ date('Y') }} MyFinance &bull; Secure Financial Management
+            &copy; {{ date('Y') }} {{ __('common.app_name') }} &bull; {{ __('common.tagline') }}
         </p>
     </div>
 
 </body>
 </html>
-

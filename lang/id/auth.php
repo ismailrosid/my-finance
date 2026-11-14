@@ -1,0 +1,38 @@
+<?php
+
+return [
+    'failed' => 'Kredensial yang diberikan tidak cocok dengan data kami.',
+    'password' => 'Kata sandi yang dimasukkan salah.',
+    'throttle' => 'Terlalu banyak percobaan masuk. Silakan coba lagi dalam :seconds detik.',
+
+    // Auth Views
+    'sign_in' => 'Masuk',
+    'sign_in_title' => 'Selamat Datang di MyFinance',
+    'sign_in_subtitle' => 'Sistem Manajemen Keuangan & Arus Kas Pribadi',
+    'sign_in_to_account' => 'Masuk ke Akun Anda',
+    'sign_up' => 'Daftar',
+    'sign_up_title' => 'Buat Akun Baru',
+    'sign_up_subtitle' => 'Mulai kendalikan kebebasan finansial Anda hari ini',
+    'email_address' => 'Alamat Email',
+    'password_label' => 'Kata Sandi',
+    'confirm_password' => 'Konfirmasi Kata Sandi',
+    'full_name' => 'Nama Lengkap',
+    'phone_number' => 'Nomor Telepon',
+    'remember_me' => 'Ingat Saya',
+    'forgot_password' => 'Lupa kata sandi?',
+    'forgot_password_title' => 'Lupa Kata Sandi',
+    'forgot_password_subtitle' => 'Masukkan alamat email Anda yang terdaftar dan kami akan mengirimkan tautan atur ulang kata sandi.',
+    'send_reset_link' => 'Kirim Tautan Atur Ulang Kata Sandi',
+    'reset_password' => 'Atur Ulang Kata Sandi',
+    'reset_password_title' => 'Tetapkan Kata Sandi Baru',
+    'reset_password_subtitle' => 'Silakan masukkan kata sandi baru untuk memulihkan akses akun Anda.',
+    'back_to_login' => 'Kembali ke Halaman Masuk',
+    'dont_have_account' => 'Belum punya akun?',
+    'already_have_account' => 'Sudah punya akun?',
+    'agree_terms' => 'Saya menyetujui Ketentuan Layanan dan Kebijakan Privasi',
+    'demo_accounts' => 'Kredensial Demo',
+    'quick_fill' => 'Klik untuk isi otomatis',
+    'sign_out' => 'Keluar',
+    'sign_out_confirm_title' => 'Keluar dari MyFinance?',
+    'sign_out_confirm_desc' => 'Apakah Anda yakin ingin keluar dari akun Anda? Anda perlu masuk kembali untuk mengakses data keuangan Anda.',
+];

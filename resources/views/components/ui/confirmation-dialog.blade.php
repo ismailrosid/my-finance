@@ -144,7 +144,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span x-text="isLoading ? 'Processing...' : config.confirmText"></span>
+                    <span x-text="isLoading ? (typeof window.__ === 'function' ? window.__('common.loading') : 'Loading...') : config.confirmText"></span>
                 </button>
             </div>
         </div>
@@ -157,10 +157,10 @@
             isOpen: false,
             isLoading: false,
             config: {
-                title: 'Confirm Action',
-                description: 'Are you sure you want to proceed?',
-                confirmText: 'Confirm',
-                cancelText: 'Cancel',
+                title: typeof window.__ === 'function' ? window.__('common.confirm') : 'Confirm Action',
+                description: '',
+                confirmText: typeof window.__ === 'function' ? window.__('common.confirm') : 'Confirm',
+                cancelText: typeof window.__ === 'function' ? window.__('common.cancel') : 'Cancel',
                 variant: 'primary', // 'primary' | 'danger' | 'warning' | 'info'
                 icon: null,
                 form: null,
@@ -169,11 +169,13 @@
             },
 
             openDialog(detail) {
+                const tConfirm = typeof window.__ === 'function' ? window.__('common.confirm') : 'Confirm';
+                const tCancel = typeof window.__ === 'function' ? window.__('common.cancel') : 'Cancel';
                 this.config = {
-                    title: detail.title || 'Confirm Action',
-                    description: detail.description || 'Are you sure you want to proceed?',
-                    confirmText: detail.confirmText || 'Confirm',
-                    cancelText: detail.cancelText || 'Cancel',
+                    title: detail.title || tConfirm,
+                    description: detail.description || '',
+                    confirmText: detail.confirmText || tConfirm,
+                    cancelText: detail.cancelText || tCancel,
                     variant: detail.variant || 'primary',
                     icon: detail.icon || null,
                     form: detail.form || null,
